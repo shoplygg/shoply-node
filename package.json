@@ -1,0 +1,35 @@
+{
+  "name": "@shoplygg/node",
+  "version": "0.1.1",
+  "description": "Shoply's API from your own server: every route as a typed method, safe retries, pages, and checking webhooks.",
+  "keywords": ["shoply", "api", "sdk", "ecommerce", "webhooks", "digital-goods"],
+  "homepage": "https://docs.shoply.gg/api-reference/node",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shoplygg/shoply-node.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shoplygg/shoply-node/issues"
+  },
+  "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./index.d.ts",
+      "default": "./index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": ["index.js", "index.d.ts", "generated", "README.md", "LICENSE"],
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "test": "node --test test/client.test.mjs"
+  }
+}
