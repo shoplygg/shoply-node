@@ -5725,6 +5725,246 @@ export type CartRecoveryCartResult = {
   recoveredAt: unknown;
 };
 
+/** What get Win-Back takes: `winBack.show`. */
+export interface WinBackShowParams {
+  /**
+   * The period.
+   *
+   * Left out, it is "30d".
+   */
+  range?: "today" | "yesterday" | "7d" | "30d" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year";
+  /** The first day of a period of your own, as `YYYY-MM-DD`. With `to`, in place of `range`. */
+  from?: string;
+  /** Its last day, as `YYYY-MM-DD`. */
+  to?: string;
+  /** The time zone those days are in, as an IANA name. Left out, UTC. */
+  tz?: string;
+}
+
+/** What get Win-Back answers: `winBack.show`. */
+export type WinBackShowResult = {
+  enabled: boolean;
+  firstOn: boolean;
+  firstDays: number;
+  firstSubject: string;
+  secondOn: boolean;
+  secondDays: number;
+  secondSubject: string;
+  secondPercent: number;
+  audience: string;
+};
+
+/** What change Win-Back takes: `winBack.update`. */
+export interface WinBackUpdateParams {
+  /** Whether Win-Back writes to anybody. */
+  enabled?: boolean;
+  /** Whether the first email is sent. */
+  firstOn?: boolean;
+  /** Days after a buyer's last order. One of 14, 21, 30, 45, 60, 90. */
+  firstDays?: number;
+  /** Its subject, up to 150 characters. */
+  firstSubject?: string;
+  /** Whether the second email is sent. */
+  secondOn?: boolean;
+  /** Days after the first. One of 3, 7, 14, 21, 30. */
+  secondDays?: number;
+  /** Its subject, up to 150 characters. */
+  secondSubject?: string;
+  /** The percent off its coupon. One of 0, 5, 10, 15, 20, 25. 0 sends it with no coupon. */
+  secondPercent?: number;
+  /** Who is written to: empty for every subscriber, `vip`, or the ID of one of the store's tags. */
+  audience?: string;
+}
+
+/** What change Win-Back answers: `winBack.update`. */
+export type WinBackUpdateResult = {
+  enabled: boolean;
+  firstOn: boolean;
+  firstDays: number;
+  firstSubject: string;
+  secondOn: boolean;
+  secondDays: number;
+  secondSubject: string;
+  secondPercent: number;
+  audience: string;
+};
+
+/** What list Win-Back buyers takes: `winBack.buyers`. */
+export interface WinBackBuyersParams {
+  /**
+   * Only these.
+   *
+   * Left out, it is "all".
+   */
+  show?: "all" | "due" | "emailed" | "won" | "unsubscribed" | "clicked";
+  /** Part of a buyer's email. */
+  search?: string;
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+}
+
+/** A row of what list Win-Back buyers lists: `winBack.buyers`. */
+export type WinBackBuyersItem = {
+  id: string;
+  email: string;
+  customerId: string;
+  orders: number;
+  spent: number;
+  tags: unknown[] | Record<string, unknown>;
+  state: string;
+  stopped: unknown;
+  lastOrderId: string;
+  lastOrderAt: string;
+  what: string;
+  nextStep: string;
+  dueAt: string;
+  emailedAt: unknown;
+  secondEmailAt: unknown;
+  clickedAt: unknown;
+  couponCode: unknown;
+  couponExpiresAt: unknown;
+  wonOrderId: unknown;
+  wonAt: unknown;
+  wonAfter: unknown;
+  quietDays: unknown;
+  unsubscribedAt: unknown;
+};
+
+/** What get a Win-Back buyer answers: `winBack.buyer`. */
+export type WinBackBuyerResult = {
+  id: string;
+  email: string;
+  customerId: string;
+  orders: number;
+  spent: number;
+  tags: unknown[] | Record<string, unknown>;
+  state: string;
+  stopped: unknown;
+  lastOrderId: string;
+  lastOrderAt: string;
+  what: string;
+  nextStep: string;
+  dueAt: string;
+  emailedAt: unknown;
+  secondEmailAt: unknown;
+  clickedAt: unknown;
+  couponCode: unknown;
+  couponExpiresAt: unknown;
+  wonOrderId: unknown;
+  wonAt: unknown;
+  wonAfter: unknown;
+  quietDays: unknown;
+  unsubscribedAt: unknown;
+};
+
+/** What get subscriber figures takes: `subscribers.summary`. */
+export interface SubscribersSummaryParams {
+  /**
+   * The period.
+   *
+   * Left out, it is "30d".
+   */
+  range?: "today" | "yesterday" | "7d" | "30d" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year";
+  /** The first day of a period of your own, as `YYYY-MM-DD`. With `to`, in place of `range`. */
+  from?: string;
+  /** Its last day, as `YYYY-MM-DD`. */
+  to?: string;
+  /** The time zone those days are in, as an IANA name. Left out, UTC. */
+  tz?: string;
+}
+
+/** What get subscriber figures answers: `subscribers.summary`. */
+export type SubscribersSummaryResult = {
+  asking: boolean;
+  figures: {
+    subscribed: number;
+    joined: number;
+    asked: number;
+    rate: number;
+    unsubscribed: number;
+    sent: number;
+  };
+};
+
+/** What change asking at checkout takes: `subscribers.asking`. */
+export interface SubscribersAskingParams {
+  /** Ask, or not. */
+  on: boolean;
+}
+
+/** What change asking at checkout answers: `subscribers.asking`. */
+export type SubscribersAskingResult = {
+  asking: boolean;
+};
+
+/** What list subscribers takes: `subscribers.list`. */
+export interface SubscribersListParams {
+  /**
+   * Only these.
+   *
+   * Left out, it is "all".
+   */
+  show?: "all" | "subscribed" | "unsubscribed";
+  /** Part of an email address. */
+  search?: string;
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+}
+
+/** A row of what list subscribers lists: `subscribers.list`. */
+export type SubscribersListItem = {
+  email: string;
+  customerId: string;
+  subscribed: boolean;
+  subscribedAt: string;
+  source: string;
+  where: string;
+  orderId: string;
+  unsubscribedAt: unknown;
+  unsubscribedBy: unknown;
+};
+
+/** What export subscribers takes: `subscribers.export`. */
+export interface SubscribersExportParams {
+  /**
+   * Only these.
+   *
+   * Left out, it is "all".
+   */
+  show?: "all" | "subscribed" | "unsubscribed";
+  /** Part of an email address. */
+  search?: string;
+  /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. */
+  check?: "1";
+}
+
+/** What unsubscribe a subscriber takes: `subscribers.unsubscribe`. */
+export interface SubscribersUnsubscribeParams {
+  /** Their email address. */
+  email: string;
+}
+
+/** What unsubscribe a subscriber answers: `subscribers.unsubscribe`. */
+export type SubscribersUnsubscribeResult = {
+  email: string;
+  customerId: unknown;
+  subscribed: boolean;
+  subscribedAt: string;
+  source: string;
+  where: string;
+  orderId: string;
+  unsubscribedAt: string;
+  unsubscribedBy: string;
+};
+
 /** What list customers takes: `customers.list`. */
 export interface CustomersListParams {
   /**
@@ -5747,8 +5987,10 @@ export interface CustomersListParams {
    * Left out, it is "newest".
    */
   sort?: "newest" | "spent" | "orders" | "recent" | "balance";
-  /** Only customers who are affiliates. */
-  only?: "affiliates";
+  /** Only customers who are affiliates, or who are subscribed to the store's news and offers. */
+  only?: "affiliates" | "subscribed";
+  /** Only customers wearing this tag: `vip`, `disputed`, or the ID of one of the store's own. */
+  tag?: string;
   /** Only customers first seen in this period. */
   range?: "today" | "yesterday" | "7d" | "30d" | "this_week" | "last_week" | "this_month" | "last_month" | "this_year";
   /** Only customers first seen on or after this day, as `YYYY-MM-DD`. With `to`, in place of `range`. */
@@ -5770,6 +6012,12 @@ export type CustomersListItem = {
   lastOrderAt: unknown;
   balance: number;
   affiliateState: unknown;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
 };
 
 /** What create a customer takes: `customers.create`. */
@@ -5801,8 +6049,10 @@ export interface CustomersExportParams {
    * Left out, it is "newest".
    */
   sort?: "newest" | "spent" | "orders" | "recent" | "balance";
-  /** Only customers who are affiliates. */
-  only?: "affiliates";
+  /** Only customers who are affiliates, or who are subscribed to the store's news and offers. */
+  only?: "affiliates" | "subscribed";
+  /** Only customers wearing this tag: `vip`, `disputed`, or the ID of one of the store's own. */
+  tag?: string;
   /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. Not counted against the store's exports, and refused with 429 where none are left. */
   check?: "1";
   /** Only customers first seen in this period. */
@@ -5861,6 +6111,12 @@ export type CustomersStatsResult = {
 export type CustomersShowResult = {
   balance: number;
   balanceAtCheckout: boolean;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
   balanceHistory: {
     id: string;
     kind: string;
@@ -5903,6 +6159,12 @@ export interface CustomersSetBalanceParams {
 export type CustomersSetBalanceResult = {
   balance: number;
   balanceAtCheckout: boolean;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
   balanceHistory: {
     id: string;
     kind: string;
@@ -5937,6 +6199,12 @@ export interface CustomersBlacklistParams {
 export type CustomersBlacklistResult = {
   balance: number;
   balanceAtCheckout: boolean;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
   balanceHistory: {
     id: string;
     kind: string;
@@ -5975,6 +6243,12 @@ export interface CustomersUnblacklistParams {
 export type CustomersUnblacklistResult = {
   balance: number;
   balanceAtCheckout: boolean;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
   balanceHistory: {
     id: string;
     kind: string;
@@ -5993,6 +6267,102 @@ export type CustomersUnblacklistResult = {
   knownAddresses: number;
   removed: number;
 };
+
+/** What list customer tags answers: `customerTags.list`. */
+export type CustomerTagsListResult = {
+  id: string;
+  name: string;
+  tone: string;
+  automatic: boolean;
+  customers: number;
+}[];
+
+/** What add a customer tag takes: `customerTags.create`. */
+export interface CustomerTagsCreateParams {
+  /** Its name, up to 32 characters. */
+  name: string;
+  /**
+   * Its colour.
+   *
+   * Left out, it is "neutral".
+   */
+  tone?: "neutral" | "primary" | "success" | "warning" | "danger";
+}
+
+/** What add a customer tag answers: `customerTags.create`. */
+export type CustomerTagsCreateResult = {
+  id: string;
+  name: string;
+  tone: string;
+  automatic: boolean;
+};
+
+/** What change VIP and Disputed Before takes: `customerTags.automatic`. */
+export interface CustomerTagsAutomaticParams {
+  /** Whether VIP is put on. */
+  vipOn?: boolean;
+  /** A VIP has spent at least this, in the store's currency, on completed orders. 0 leaves it out. */
+  vipSpent?: number;
+  /** Or paid for at least this many orders. 0 leaves it out. */
+  vipOrders?: number;
+  /** Over this many days back, 0 for all time. */
+  vipDays?: 0 | 365 | 180 | 90 | 30;
+  /** Whether Disputed Before is put on: a dispute on any of their orders, won or lost. */
+  disputedOn?: boolean;
+}
+
+/** What change VIP and Disputed Before answers: `customerTags.automatic`. */
+export type CustomerTagsAutomaticResult = {
+  id: string;
+  name: string;
+  tone: string;
+  automatic: boolean;
+  customers: number;
+}[];
+
+/** What change a customer tag takes: `customerTags.update`. */
+export interface CustomerTagsUpdateParams {
+  /** Its name, up to 32 characters. */
+  name?: string;
+  /** Its colour. */
+  tone?: "neutral" | "primary" | "success" | "warning" | "danger";
+}
+
+/** What change a customer tag answers: `customerTags.update`. */
+export type CustomerTagsUpdateResult = {
+  id: string;
+  name: string;
+  tone: string;
+  automatic: boolean;
+};
+
+/** What delete a customer tag answers: `customerTags.delete`. */
+export type CustomerTagsDeleteResult = unknown[] | Record<string, unknown>;
+
+/** What set a customer's tags takes: `customers.setTags`. */
+export interface CustomersSetTagsParams {
+  /** The IDs of the store's tags they wear. */
+  tags: string[];
+}
+
+/** What set a customer's tags answers: `customers.setTags`. */
+export type CustomersSetTagsResult = {
+  id: string;
+  name: string;
+  tone: string;
+  automatic: boolean;
+}[];
+
+/** What put a tag on a customer answers: `customers.tag`. */
+export type CustomersTagResult = {
+  id: string;
+  name: string;
+  tone: string;
+  automatic: boolean;
+}[];
+
+/** What take a tag off a customer answers: `customers.untag`. */
+export type CustomersUntagResult = unknown[] | Record<string, unknown>;
 
 /** What list affiliates answers: `affiliates.list`. */
 export type AffiliatesListResult = {
@@ -7055,11 +7425,11 @@ export interface DisputesUpdateSettingsParams {
   blacklist?: boolean;
   /** Hide what the order delivered from its buyer while a dispute is open, shown again if it is won. */
   takeBackAccess?: boolean;
-  /** Accept a Stripe dispute under `acceptUnder` rather than fight it. */
+  /** Accept a dispute answered from Shoply under `acceptUnder` rather than fight it. */
   acceptSmall?: boolean;
   /** The amount, above 0. */
   acceptUnder?: number;
-  /** Submit a Stripe dispute's answer with a day left. */
+  /** Submit the answer of a dispute answered from Shoply with a day left. */
   autoSubmit?: boolean;
   /** Never send or accept one over `askAbove` by itself. */
   askAboveOn?: boolean;
@@ -11660,11 +12030,107 @@ export interface ShoplyResourcesCartRecovery {
   cart(cartId: string, options?: RequestOptions): Promise<CartRecoveryCartResult>;
 }
 
+export interface ShoplyResourcesWinBack {
+  /**
+   * **Get Win-Back**
+   *
+   * Win-Back's settings as `data`. `meta.figures` is the period's four figures: the revenue it won back (and the period before's), subscribers and the share of buyers asked who said yes, the share of buyers emailed who came back, and the emails sent with how many buyers clicked and unsubscribed. `meta.set` is false where the store has never set it up, `meta.asking` whether the checkout asks buyers for leave, `meta.sendable` whether the store can send email at all, `meta.audiences` the tags it may be narrowed to, and `meta.choices` what each setting may take.
+   *
+   * Needs the `marketing.read` permission (Read Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/get-win-back
+   */
+  show(params?: WinBackShowParams, options?: RequestOptions): Promise<WinBackShowResult>;
+  /**
+   * **Change Win-Back**
+   *
+   * Changes the settings named and keeps the rest. Win-Back writes only to subscribers: buyers who ticked "Email me news and offers" at checkout on an order they paid, and have not said no since. The first email goes the set number of days after a buyer's last completed order, if they have not ordered since; the second, days after the first, carries a coupon made for that buyer, good for 7 days. A buyer with a dispute on record is not written to. Switching it on also switches on asking at checkout, and `meta.askingTurnedOn` says so. An empty subject is the email's own.
+   *
+   * Needs the `marketing.write` permission (Change Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/change-win-back
+   */
+  update(params?: WinBackUpdateParams, options?: RequestOptions): Promise<WinBackUpdateResult>;
+  /**
+   * **List Win-Back buyers**
+   *
+   * The buyers Win-Back has written to or will within 7 days, the latest to have moved first, 25 a page. A buyer is here once for each time they go quiet. `state` is `due` (`dueAt` says when its first email goes), `first` or `second` (the email it last had), `won` (they ordered within 14 days of an email: `wonOrderId`, `wonAt`, `wonAfter`, `quietDays`), `unsubscribed`, or `stopped` (`stopped` says why: `ordered`, `off`, `audience`, `disputed`, `failed`). `orders` and `spent` are their completed orders at the store, `tags` theirs as on Get a customer, `couponCode` and `couponExpiresAt` the second email's coupon, and `clickedAt` when a browser first opened an email's button.
+   *
+   * Needs the `marketing.read` permission (Read Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/list-win-back-buyers
+   */
+  buyers(params?: WinBackBuyersParams, options?: RequestOptions): PagePromise<WinBackBuyersItem>;
+  /**
+   * **Get a Win-Back buyer**
+   *
+   * One buyer as "List Win-Back buyers" has them. What the `winback.` webhooks send.
+   *
+   * Needs the `marketing.read` permission (Read Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/get-a-win-back-buyer
+   */
+  buyer(buyerId: string, options?: RequestOptions): Promise<WinBackBuyerResult>;
+}
+
+export interface ShoplyResourcesSubscribers {
+  /**
+   * **Get subscriber figures**
+   *
+   * `asking`, whether the checkout asks buyers "Email me news and offers", and `figures` for the period: `subscribed` now, `joined` in the period, `asked` (paid orders whose box was shown) and `rate` (the share of those ticked), `unsubscribed` in the period, and `sent`, the emails Cart Recovery and Win-Back sent in it.
+   *
+   * Needs the `marketing.read` permission (Read Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/get-subscriber-figures
+   */
+  summary(params?: SubscribersSummaryParams, options?: RequestOptions): Promise<SubscribersSummaryResult>;
+  /**
+   * **Change asking at checkout**
+   *
+   * Whether the checkout shows buyers an unticked box above Pay, "Email me news and offers from" the store, on checkouts they start on the store, in the embed and in the Checkout Kit. Never on an invoice or a payment link. Switched off, nobody new subscribes, and everybody subscribed stays so.
+   *
+   * Needs the `marketing.write` permission (Change Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/change-asking-at-checkout
+   */
+  asking(params: SubscribersAskingParams, options?: RequestOptions): Promise<SubscribersAskingResult>;
+  /**
+   * **List subscribers**
+   *
+   * Who said yes to the store's news and offers, newest first, 25 a page: `subscribedAt`, `source` and `where` (the store's checkout, the embed or the Checkout Kit), `orderId` (the order whose box was ticked; they became a subscriber when it was paid), and for one who said no since, `unsubscribedAt` and `unsubscribedBy` (`email`, a link in an email; `seller`; `key`).
+   *
+   * Needs the `marketing.read` permission (Read Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/list-subscribers
+   */
+  list(params?: SubscribersListParams, options?: RequestOptions): PagePromise<SubscribersListItem>;
+  /**
+   * **Export subscribers**
+   *
+   * The subscribers the same filters would list, as a CSV file. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, every kind together, whoever asks: after that the answer is 429.
+   *
+   * Needs the `marketing.read` permission (Read Email Marketing). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/export-subscribers
+   */
+  export(params?: SubscribersExportParams, options?: RequestOptions): Promise<Response>;
+  /**
+   * **Unsubscribe a subscriber**
+   *
+   * No more Win-Back to this address. They become a subscriber again only by ticking the box on another order they pay. 404 for an address that never said yes. Answers the subscriber.
+   *
+   * Needs the `marketing.write` permission (Change Email Marketing).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-marketing/unsubscribe-a-subscriber
+   */
+  unsubscribe(params: SubscribersUnsubscribeParams, options?: RequestOptions): Promise<SubscribersUnsubscribeResult>;
+}
+
 export interface ShoplyResourcesCustomers {
   /**
    * **List customers**
    *
-   * The store's customers, a page at a time, each with how many orders they have paid for, what they have spent and their balance.
+   * The store's customers, a page at a time, each with how many orders they have paid for, what they have spent, their balance and their `tags`: Shoply's two first (`vip` and `disputed`, worked out from their orders as they are read), then the store's own.
    *
    * Needs the `customers.read` permission (Read Customers).
    *
@@ -11684,7 +12150,7 @@ export interface ShoplyResourcesCustomers {
   /**
    * **Export customers**
    *
-   * The customers the same filters would list, as a CSV file: each one's email, when they were first seen, the orders they paid for and what they spent, their first and last paid order, their store balance, and their affiliate code and balance where they have one. Every customer the filters match is in the file, however many: it is sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events and blacklist rules together, whoever asks: after that the answer is 429.
+   * The customers the same filters would list, as a CSV file: each one's email, when they were first seen, the orders they paid for and what they spent, their first and last paid order, their store balance, their affiliate code and balance where they have one, their tags, and whether they are subscribed to the store's news and offers. Every customer the filters match is in the file, however many: it is sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events and blacklist rules together, whoever asks: after that the answer is 429.
    *
    * Needs the `customers.read` permission (Read Customers). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
    *
@@ -11704,7 +12170,7 @@ export interface ShoplyResourcesCustomers {
   /**
    * **Get a customer**
    *
-   * One customer: their orders, their balance and its history, whether they are blacklisted, and their affiliate figures if they are one.
+   * One customer: their orders, their balance and its history, their `tags`, whether they are blacklisted, and their affiliate figures if they are one.
    *
    * Needs the `customers.read` permission (Read Customers).
    *
@@ -11741,6 +12207,89 @@ export interface ShoplyResourcesCustomers {
    * @see https://docs.shoply.gg/api-reference/customers/clear-a-customer-from-the-blacklist
    */
   unblacklist(customerId: string, params?: CustomersUnblacklistParams, options?: RequestOptions): Promise<CustomersUnblacklistResult>;
+  /**
+   * **Set a customer's tags**
+   *
+   * The customer's own tags become exactly these: any not listed is taken off, any new one is put on, and each is sent as `customer.tagged` or `customer.untagged`. Shoply's two are not set here. Answers their tags.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/set-a-customers-tags
+   */
+  setTags(customerId: string, params: CustomersSetTagsParams, options?: RequestOptions): Promise<CustomersSetTagsResult>;
+  /**
+   * **Put a tag on a customer**
+   *
+   * One of the store's tags on the customer. One they already wear changes nothing. Answers their tags.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/put-a-tag-on-a-customer
+   */
+  tag(customerId: string, tagId: string, options?: RequestOptions): Promise<CustomersTagResult>;
+  /**
+   * **Take a tag off a customer**
+   *
+   * One of the store's tags off the customer. One they do not wear changes nothing. Answers their tags.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/take-a-tag-off-a-customer
+   */
+  untag(customerId: string, tagId: string, options?: RequestOptions): Promise<CustomersUntagResult>;
+}
+
+export interface ShoplyResourcesCustomerTags {
+  /**
+   * **List customer tags**
+   *
+   * The store's own tags as `data`, by name, each with `customers`, how many wear it. `meta.automatic` is Shoply's two: VIP's rule (`vipOn`, `vipSpent` in the store's currency, `vipOrders` completed orders, `vipDays` the period, 0 for all time; either number 0 leaves that half out) and `disputedOn`, with `vipCustomers` and `disputedCustomers`, how many wear each today.
+   *
+   * Needs the `customers.read` permission (Read Customers).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/list-customer-tags
+   */
+  list(options?: RequestOptions): Promise<CustomerTagsListResult>;
+  /**
+   * **Add a customer tag**
+   *
+   * A tag of the store's own. A store has at most 50. Names are told apart without regard to case, and VIP and Disputed Before are Shoply's.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/add-a-customer-tag
+   */
+  create(params: CustomerTagsCreateParams, options?: RequestOptions): Promise<CustomerTagsCreateResult>;
+  /**
+   * **Change VIP and Disputed Before**
+   *
+   * Shoply's two tags: whether each is put on, and who is a VIP. Both are worked out from a customer's orders whenever they are read, so a change reaches every customer at once. Answers as List customer tags does.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/change-vip-and-disputed-before
+   */
+  automatic(params?: CustomerTagsAutomaticParams, options?: RequestOptions): Promise<CustomerTagsAutomaticResult>;
+  /**
+   * **Change a customer tag**
+   *
+   * Renames a tag or changes its colour, keeping what is not sent. Everybody wearing it keeps it.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/change-a-customer-tag
+   */
+  update(tagId: string, params?: CustomerTagsUpdateParams, options?: RequestOptions): Promise<CustomerTagsUpdateResult>;
+  /**
+   * **Delete a customer tag**
+   *
+   * Deletes a tag and takes it off everybody wearing it. No `customer.untagged` is sent for each. Win-Back narrowed to this tag writes to everybody subscribed again. Answers the tags left.
+   *
+   * Needs the `customers.tags` permission (Change Tags).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/delete-a-customer-tag
+   */
+  delete(tagId: string, options?: RequestOptions): Promise<CustomerTagsDeleteResult>;
 }
 
 export interface ShoplyResourcesAffiliates {
@@ -12014,7 +12563,7 @@ export interface ShoplyResourcesDisputes {
   /**
    * **List disputes**
    *
-   * The disputes buyers opened on the store's payments, as their payment providers reported them: the ones that need an answer first, soonest deadline first, then the rest newest first. `status` is how it reads on the dashboard: `needs_response`, `under_review`, `won`, `lost`, `accepted` or `closed` (ended with no chargeback). `providerStatus` is the provider's own last word, `stage` is `inquiry`, `chargeback`, `claim` (a PayPal case), `pre_arbitration` or `arbitration`, and `dueAt` when the provider stops taking an answer, where it says. `answeredFrom` is where it is answered: `here` (Stripe's, through this API), `provider` (in the provider's own dashboard, named in `answerPlace`) or `none`. `meta.figures` is the dashboard's four: how many need an answer and how many are due within three days, the money in the open ones in the store's currency, how many ended won and lost in the last 90 days, and the orders disputed beside those that took money in that time.
+   * The disputes buyers opened on the store's payments, as their payment providers reported them: the ones that need an answer first, soonest deadline first, then the rest newest first. `status` is how it reads on the dashboard: `needs_response`, `under_review`, `won`, `lost`, `accepted` or `closed` (ended with no chargeback). `providerStatus` is the provider's own last word, `stage` is `inquiry`, `chargeback`, `claim` (a PayPal case), `pre_arbitration` or `arbitration`, and `dueAt` when the provider stops taking an answer, where it says. `answeredFrom` is where it is answered: `here` (through this API: Stripe's, Revolut's, Adyen's, and PayPal's where PayPal is connected with API keys), `provider` (in the provider's own dashboard, named in `answerPlace`) or `none`. `meta.figures` is the dashboard's four: how many need an answer and how many are due within three days, the money in the open ones in the store's currency, how many ended won and lost in the last 90 days, and the orders disputed beside those that took money in that time.
    *
    * Needs the `disputes.read` permission (Read Disputes).
    *
@@ -12064,7 +12613,7 @@ export interface ShoplyResourcesDisputes {
   /**
    * **Submit a dispute's answer**
    *
-   * Sends a Stripe dispute's answer to Stripe, which hands it to the card's bank at once: Stripe's evidence fields filled in from what Shoply recorded, Shoply's PDF of it, the store's own files, and the statement. Stripe takes one answer a dispute, so this cannot be taken back. Any draft fields in the body are saved first. Answers 409 `answered_elsewhere` for a dispute with another provider, `not_answerable` for one not waiting on an answer, and `past_due` once its deadline has passed. Stripe refusing it is 502, with `stripe_key` where the store's Stripe key may not write disputes and files, and `provider_refused` otherwise, the dispute back to a draft with `answer.note` saying why. A store sends at most 20 answers or acceptances every 10 minutes.
+   * Sends a dispute's answer to its provider, once: what Shoply recorded, Shoply's PDF of it, the store's own files, and the statement, in each provider's own shape. Stripe's evidence fields; Revolut's files and a challenge whose comment is the statement's first 250 characters; PayPal's evidence, appeal or supporting information, whichever the dispute takes now, with the statement as its notes; Adyen's documents under a defense reason, the statement in the PDF. It cannot be taken back. Any draft fields in the body are saved first. Answers 409 `answered_elsewhere` for a dispute answered in its provider's own dashboard, `not_answerable` for one not waiting on an answer, `past_due` once its deadline has passed, and `file_not_taken` for one of the store's files the provider does not take (Adyen takes no PNG, and a PDF of up to 2 MB). The provider refusing it is 502, with `stripe_key` or `provider_key` where the store's key or app may not answer disputes, and `provider_refused` otherwise, the dispute back to a draft with `answer.note` saying why. A store sends at most 20 answers or acceptances every 10 minutes.
    *
    * Needs the `disputes.write` permission (Answer Disputes).
    *
@@ -12074,7 +12623,7 @@ export interface ShoplyResourcesDisputes {
   /**
    * **Accept a dispute**
    *
-   * Concedes a Stripe dispute in Stripe: the buyer keeps the money and the order becomes a chargeback. Cannot be undone. Answers as Submit does when it cannot be done, and counts toward the same 20 every 10 minutes.
+   * Concedes a dispute in its provider (Stripe, Revolut, Adyen, or PayPal's claim, which PayPal refunds from the store's account): the buyer keeps the money and the order becomes a chargeback. Cannot be undone. Answers as Submit does when it cannot be done, and counts toward the same 20 every 10 minutes.
    *
    * Needs the `disputes.write` permission (Answer Disputes).
    *
@@ -12104,7 +12653,7 @@ export interface ShoplyResourcesDisputes {
   /**
    * **Add a file to a dispute's answer**
    *
-   * One of the store's own files for the answer, sent as `multipart/form-data` in a field called `file`: a PDF, a PNG or a JPEG, its type read from the file itself. One of each `kind`, a new one in place of the one there was, and all of a dispute's files together up to 4 MB, which with Shoply's PDF is within Stripe's limit. Sent to Stripe as `customer_communication`, `receipt` and `service_documentation`. A store adds at most 30 files every 10 minutes.
+   * One of the store's own files for the answer, sent as `multipart/form-data` in a field called `file`: a PDF, a PNG or a JPEG, its type read from the file itself. One of each `kind`, a new one in place of the one there was, and all of a dispute's files together up to 4 MB, which with Shoply's PDF is within Stripe's limit. Sent to Stripe as `customer_communication`, `receipt` and `service_documentation`, and to Revolut, PayPal and Adyen beside Shoply's PDF. For a dispute answered to Adyen, a PNG is refused as `invalid_type`, and a PDF over 2 MB as `too_large`: Adyen takes neither. A store adds at most 30 files every 10 minutes.
    *
    * Needs the `disputes.write` permission (Answer Disputes).
    *
@@ -12154,7 +12703,7 @@ export interface ShoplyResourcesDisputes {
   /**
    * **Change dispute settings**
    *
-   * Changes the settings named and keeps the rest. Accepting small ones and submitting before the deadline are Stripe's alone, the only disputes answered from Shoply, and run every few minutes: a dispute under `acceptUnder` that nobody has started an answer for is accepted, and with a day left an answer is submitted as it stands, or where there is none, only when the buyer opened their order or took a file from the address they paid from. Nothing over `askAbove` is sent or accepted by itself where `askAboveOn` is on.
+   * Changes the settings named and keeps the rest. Accepting small ones and submitting before the deadline are for disputes answered from Shoply (Stripe's, Revolut's, Adyen's, and PayPal's with API keys), and run every few minutes: a dispute under `acceptUnder` that nobody has started an answer for is accepted, and with a day left an answer is submitted as it stands, or where there is none, only when the buyer opened their order or took a file from the address they paid from. Nothing over `askAbove` is sent or accepted by itself where `askAboveOn` is on.
    *
    * Needs the `disputes.write` permission (Answer Disputes).
    *
@@ -12700,7 +13249,10 @@ export interface ShoplyResources {
   brokenLinks: ShoplyResourcesBrokenLinks;
   sitemap: ShoplyResourcesSitemap;
   cartRecovery: ShoplyResourcesCartRecovery;
+  winBack: ShoplyResourcesWinBack;
+  subscribers: ShoplyResourcesSubscribers;
   customers: ShoplyResourcesCustomers;
+  customerTags: ShoplyResourcesCustomerTags;
   affiliates: ShoplyResourcesAffiliates;
   affiliateProgramme: ShoplyResourcesAffiliateProgramme;
   blacklist: ShoplyResourcesBlacklist;
@@ -12985,6 +13537,8 @@ export type WebhookEventName =
   | "product.deleted"
   | "customer.created"
   | "customer.balance_changed"
+  | "customer.tagged"
+  | "customer.untagged"
   | "affiliate.created"
   | "affiliate.payout_requested"
   | "affiliate.payout_answered"
@@ -12999,6 +13553,10 @@ export type WebhookEventName =
   | "cart.email_sent"
   | "cart.recovered"
   | "cart.unsubscribed"
+  | "winback.email_sent"
+  | "winback.won_back"
+  | "subscriber.subscribed"
+  | "subscriber.unsubscribed"
   | "routing.processor_paused"
   | "routing.processor_resumed"
   | "dispute.opened"
@@ -13136,15 +13694,27 @@ export interface WebhookEventData {
   /**
    * An email address became a customer of the store.
    *
-   * `data`: `id`, `emailAddress`, `balance` and `dateCreated`.
+   * `data`: `id`, `emailAddress`, `balance`, `tags` and `dateCreated`. `customer.tagged` and `customer.untagged` add `tag`, the one put on or taken off: `id`, `name`, `tone` and `automatic` (Shoply's own two are `vip` and `disputed`).
    */
   "customer.created": Record<string, unknown>;
   /**
    * A customer's store balance changed: it was spent, credited, refunded to or set.
    *
-   * `data`: `id`, `emailAddress`, `balance` and `dateCreated`.
+   * `data`: `id`, `emailAddress`, `balance`, `tags` and `dateCreated`. `customer.tagged` and `customer.untagged` add `tag`, the one put on or taken off: `id`, `name`, `tone` and `automatic` (Shoply's own two are `vip` and `disputed`).
    */
   "customer.balance_changed": Record<string, unknown>;
+  /**
+   * A tag was put on a customer: one of the store's own, by hand or by a key; VIP, by the sale that made them one; or Disputed Before, by their first dispute.
+   *
+   * `data`: `id`, `emailAddress`, `balance`, `tags` and `dateCreated`. `customer.tagged` and `customer.untagged` add `tag`, the one put on or taken off: `id`, `name`, `tone` and `automatic` (Shoply's own two are `vip` and `disputed`).
+   */
+  "customer.tagged": Record<string, unknown>;
+  /**
+   * One of the store's own tags was taken off a customer, by hand or by a key. A tag deleted, and VIP ending because its period moved on, are not sent.
+   *
+   * `data`: `id`, `emailAddress`, `balance`, `tags` and `dateCreated`. `customer.tagged` and `customer.untagged` add `tag`, the one put on or taken off: `id`, `name`, `tone` and `automatic` (Shoply's own two are `vip` and `disputed`).
+   */
+  "customer.untagged": Record<string, unknown>;
   /**
    * A customer became an affiliate, added by the store or by joining.
    *
@@ -13229,6 +13799,30 @@ export interface WebhookEventData {
    * `data`: The checkout that was left, as [List carts](https://docs.shoply.gg/api-reference/cart-recovery/list-carts) answers it: `state` says which email it last had, and `recoveredOrderId` the order that paid.
    */
   "cart.unsubscribed": CartRecoveryCartsItem & Record<string, unknown>;
+  /**
+   * Win-Back emailed a subscriber who has not ordered in a while: the first email or the second.
+   *
+   * `data`: The buyer, as [List Win-Back buyers](https://docs.shoply.gg/api-reference/email-marketing/list-win-back-buyers) answers it: `state` says which email they last had, and `wonOrderId` the order that brought them back.
+   */
+  "winback.email_sent": WinBackBuyersItem & Record<string, unknown>;
+  /**
+   * A buyer Win-Back emailed placed an order within 14 days of the email, and it was paid.
+   *
+   * `data`: The buyer, as [List Win-Back buyers](https://docs.shoply.gg/api-reference/email-marketing/list-win-back-buyers) answers it: `state` says which email they last had, and `wonOrderId` the order that brought them back.
+   */
+  "winback.won_back": WinBackBuyersItem & Record<string, unknown>;
+  /**
+   * A buyer who ticked the store's box at checkout, "Email me news and offers", paid that order, and is a subscriber.
+   *
+   * `data`: The subscriber, as [List subscribers](https://docs.shoply.gg/api-reference/email-marketing/list-subscribers) answers it: `email`, `customerId`, `subscribed`, `subscribedAt`, `source`, `orderId` (the order whose box was ticked), `unsubscribedAt` and `unsubscribedBy`.
+   */
+  "subscriber.subscribed": SubscribersListItem & Record<string, unknown>;
+  /**
+   * A subscriber is one no longer: they unsubscribed from a Win-Back or Cart Recovery email, or the store or a key took them off.
+   *
+   * `data`: The subscriber, as [List subscribers](https://docs.shoply.gg/api-reference/email-marketing/list-subscribers) answers it: `email`, `customerId`, `subscribed`, `subscribedAt`, `source`, `orderId` (the order whose box was ticked), `unsubscribedAt` and `unsubscribedBy`.
+   */
+  "subscriber.unsubscribed": SubscribersListItem & Record<string, unknown>;
   /**
    * Payment Routing stopped giving checkouts to one of the store's card processors: its keys stopped working, or too many of its last payments were declined.
    *
