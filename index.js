@@ -8,11 +8,13 @@
 //
 // A route's id in the API reference is its method: `orders.show` is `shoply.orders.show()`.
 // The Customer API, which a buyer's own device asks with a token of theirs, is ShoplyCustomer.
+// An app connected to a seller's store by OAuth passes its token as `apiKey`, and `oauth` has
+// the steps that get one.
 // Docs: https://docs.shoply.gg/api-reference/node
 
 import { EVENTS, OPERATIONS } from "./generated/operations.js";
 
-export const VERSION = "0.1.1";
+export const VERSION = "0.2.0";
 
 const API = "https://api.shoply.gg/v1";
 
@@ -317,7 +319,7 @@ export class Shoply {
   #storeId;
 
   /**
-   * @param options.apiKey     `shoply_sk_...`. Left out, SHOPLY_API_KEY from the environment.
+   * @param options.apiKey     `shoply_sk_...`, or an app's token (`shoply_at_...`). Left out, SHOPLY_API_KEY from the environment.
    * @param options.storeId    The store's ID. Left out, it is asked of the key the first time it is needed.
    * @param options.timeout    How long one try waits for an answer, in milliseconds. 60 seconds.
    * @param options.maxRetries How many more tries a request that can be repeated safely is given. 2.
@@ -332,8 +334,11 @@ export class Shoply {
 
     const apiKey = options.apiKey ?? globalThis.process?.env?.SHOPLY_API_KEY;
 
-    if (typeof apiKey !== "string" || !apiKey.startsWith("shoply_sk_")) {
-      throw new ShoplyError({ message: "Pass the store's secret API key as `apiKey` (shoply_sk_...), or set SHOPLY_API_KEY.", code: "api_key_required" });
+    if (typeof apiKey !== "string" || !(apiKey.startsWith("shoply_sk_") || apiKey.startsWith("shoply_at_"))) {
+      throw new ShoplyError({
+        message: "Pass the store's secret API key as `apiKey` (shoply_sk_...), or an app's token (shoply_at_...), or set SHOPLY_API_KEY.",
+        code: "api_key_required",
+      });
     }
 
     this.#storeId = options.storeId ? Promise.resolve(options.storeId) : null;
@@ -536,6 +541,131 @@ function same(a, b) {
 }
 
 Shoply.webhooks = webhooks;
+
+// ── OAuth ──────────────────────────────────────────────────────────────────────────────
+
+const DASHBOARD = "https://dashboard.shoply.gg";
+
+const base64url = (bytes) => btoa(String.fromCharCode(...bytes)).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+
+/** An OAuth answer that was an error, as a ShoplyError: `code` is OAuth's own word (`invalid_grant`...). */
+async function oauthPost(path, form, { clientId, clientSecret, baseURL, fetch: fetchFn }) {
+  const headers = { "Content-Type": "application/x-www-form-urlencoded", Accept: "application/json", "User-Agent": userAgent() };
+
+  if (clientSecret) {
+    headers.Authorization = `Basic ${btoa(`${encodeURIComponent(clientId)}:${encodeURIComponent(clientSecret)}`)}`;
+  } else {
+    form.client_id = clientId;
+  }
+
+  let answer;
+
+  try {
+    answer = await (fetchFn ?? globalThis.fetch)(`${String(baseURL ?? API).replace(/\/+$/, "")}${path}`, {
+      method: "POST",
+      headers,
+      body: new URLSearchParams(form).toString(),
+    });
+  } catch (cause) {
+    throw new ShoplyError({ message: "Shoply did not answer.", code: "connection_error", cause });
+  }
+
+  const text = await answer.text();
+  let body = null;
+
+  try {
+    body = text === "" ? {} : JSON.parse(text);
+  } catch {
+    body = null;
+  }
+
+  if (!answer.ok) {
+    throw new ShoplyError({
+      status: answer.status,
+      code: body?.error ?? (answer.status === 429 ? "rate_limited" : "oauth_error"),
+      message: body?.error_description ?? body?.message ?? `Shoply answered ${answer.status}.`,
+      retryAfter: Number(answer.headers.get("retry-after")) || null,
+      body,
+    });
+  }
+
+  return body ?? {};
+}
+
+/**
+ * Connecting an app to a seller's store, by OAuth's authorization code flow:
+ *
+ *   1. Send the seller to `authorizeUrl()`. With PKCE (always, for a desktop or phone app),
+ *      make a pair with `pkce()` first, keep its verifier and send its challenge.
+ *   2. They come back to your redirect URL with `code` and your `state`. Check the state.
+ *   3. `exchange()` the code, on your server with the client secret, or with the verifier.
+ *   4. The token is a key of their store: `new Shoply({ apiKey: token })`. It works until the
+ *      seller disconnects the app; `revoke()` gives it up.
+ */
+export const oauth = {
+  /** The page to send a seller to. `state` is yours, sent back unchanged: check it. */
+  authorizeUrl({ clientId, redirectUri, state, codeChallenge, dashboardURL = DASHBOARD } = {}) {
+    if (!clientId || !redirectUri) throw new TypeError("Pass the app's clientId and the redirectUri the seller is sent back to.");
+
+    const url = new URL("/oauth/authorize/", dashboardURL);
+
+    url.searchParams.set("response_type", "code");
+    url.searchParams.set("client_id", clientId);
+    url.searchParams.set("redirect_uri", redirectUri);
+    if (state) url.searchParams.set("state", state);
+
+    if (codeChallenge) {
+      url.searchParams.set("code_challenge", codeChallenge);
+      url.searchParams.set("code_challenge_method", "S256");
+    }
+
+    return url.toString();
+  },
+
+  /** A PKCE pair: keep `verifier` until the code comes back, and send `challenge`. */
+  async pkce() {
+    const verifier = base64url(globalThis.crypto.getRandomValues(new Uint8Array(32)));
+    const challenge = base64url(new Uint8Array(await globalThis.crypto.subtle.digest("SHA-256", encoder.encode(verifier))));
+
+    return { verifier, challenge, method: "S256" };
+  },
+
+  /** A random `state`, to keep with the seller's session and compare when they come back. */
+  state() {
+    return base64url(globalThis.crypto.getRandomValues(new Uint8Array(16)));
+  },
+
+  /**
+   * The code swapped for the token. A web app sends its client secret; a desktop or phone app
+   * sends the PKCE verifier and no secret. Throws a ShoplyError whose `code` is OAuth's word:
+   * `invalid_grant` (the code is wrong, used, or older than ten minutes), `invalid_client`.
+   */
+  async exchange({ clientId, clientSecret, code, redirectUri, codeVerifier, baseURL, fetch } = {}) {
+    if (!clientId || !code || !redirectUri) throw new TypeError("Pass clientId, the code and the redirectUri it came back to.");
+
+    const form = { grant_type: "authorization_code", code, redirect_uri: redirectUri };
+
+    if (codeVerifier) form.code_verifier = codeVerifier;
+
+    const body = await oauthPost("/oauth/token", form, { clientId, clientSecret, baseURL, fetch });
+
+    return {
+      accessToken: body.access_token,
+      tokenType: body.token_type,
+      scopes: String(body.scope ?? "").split(" ").filter(Boolean),
+      storeId: body.store_id,
+    };
+  },
+
+  /** A token given up: it stops working at once. Answered the same whether or not there was one. */
+  async revoke({ clientId, clientSecret, token, baseURL, fetch } = {}) {
+    if (!clientId || !token) throw new TypeError("Pass clientId and the token to give up.");
+
+    await oauthPost("/oauth/revoke", { token }, { clientId, clientSecret, baseURL, fetch });
+  },
+};
+
+Shoply.oauth = oauth;
 
 function userAgent() {
   const runtime = globalThis.process?.versions?.node ? `node/${globalThis.process.versions.node}` : "unknown";

@@ -8,7 +8,8 @@ import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { readFileSync } from "node:fs";
 
-import Shoply, { Page, PagePromise, ShoplyCustomer, ShoplyError, VERSION, webhooks } from "../index.js";
+import Shoply, { oauth, Page, PagePromise, ShoplyCustomer, ShoplyError, VERSION, webhooks } from "../index.js";
+import { createHash } from "node:crypto";
 import { OPERATIONS } from "../generated/operations.js";
 
 const KEY = "shoply_sk_test0000000000000000000000000000000000000000";
@@ -430,4 +431,82 @@ test("webhooks: a signed event checks out, and anything else does not", async ()
   assert.equal((await webhooks.verify(body, old, secret, { tolerance: 900 })).id, "e1");
 
   await assert.rejects(webhooks.verify(JSON.parse(body), lower, secret), TypeError);
+});
+
+test("an app's token is a key too", async () => {
+  const api = await standIn(() => ok({}));
+
+  try {
+    const shoply = new Shoply({ apiKey: "shoply_at_" + "a".repeat(48), baseURL: api.url });
+    await shoply.orders.list();
+    assert.equal(api.seen.at(-1).headers.authorization, "Bearer shoply_at_" + "a".repeat(48));
+  } finally {
+    await api.close();
+  }
+});
+
+test("oauth: the address to send a seller to, and a PKCE pair", async () => {
+  const url = new URL(oauth.authorizeUrl({ clientId: "shoply_app_0123456789abcdef", redirectUri: "https://app.example/back", state: "s1", codeChallenge: "c".repeat(43) }));
+
+  assert.equal(url.origin + url.pathname, "https://dashboard.shoply.gg/oauth/authorize/");
+  assert.deepEqual(Object.fromEntries(url.searchParams), {
+    response_type: "code",
+    client_id: "shoply_app_0123456789abcdef",
+    redirect_uri: "https://app.example/back",
+    state: "s1",
+    code_challenge: "c".repeat(43),
+    code_challenge_method: "S256",
+  });
+  assert.equal(new URL(oauth.authorizeUrl({ clientId: "x", redirectUri: "https://a.example" })).searchParams.has("code_challenge"), false);
+  assert.throws(() => oauth.authorizeUrl({ clientId: "x" }), TypeError);
+
+  const pair = await oauth.pkce();
+  assert.match(pair.verifier, /^[A-Za-z0-9_-]{43}$/);
+  assert.equal(pair.challenge, createHash("sha256").update(pair.verifier).digest("base64url"));
+  assert.equal(pair.method, "S256");
+  assert.notEqual(oauth.state(), oauth.state());
+});
+
+test("oauth: a code swapped, with the secret or with the verifier, and a token given up", async () => {
+  const api = await standIn((request) => {
+    if (request.path === "/v1/oauth/token") {
+      const form = new URLSearchParams(request.body.toString());
+
+      if (form.get("code") === "bad") return { status: 400, json: { error: "invalid_grant", error_description: "The code is not right." } };
+
+      return { status: 200, json: { access_token: "shoply_at_" + "b".repeat(48), token_type: "Bearer", scope: "orders.read products.read", store_id: STORE } };
+    }
+
+    return { status: 200, json: {} };
+  });
+
+  try {
+    const token = await oauth.exchange({ clientId: "shoply_app_0123456789abcdef", clientSecret: "shoply_cs_secret", code: "good", redirectUri: "https://app.example/back", baseURL: api.url });
+    const sent = api.seen.at(-1);
+    const form = new URLSearchParams(sent.body.toString());
+
+    assert.deepEqual(token, { accessToken: "shoply_at_" + "b".repeat(48), tokenType: "Bearer", scopes: ["orders.read", "products.read"], storeId: STORE });
+    assert.equal(sent.headers["content-type"], "application/x-www-form-urlencoded");
+    assert.equal(sent.headers.authorization, "Basic " + Buffer.from("shoply_app_0123456789abcdef:shoply_cs_secret").toString("base64"));
+    assert.equal(form.get("grant_type"), "authorization_code");
+    assert.equal(form.get("redirect_uri"), "https://app.example/back");
+    assert.equal(form.has("client_id"), false);
+
+    await oauth.exchange({ clientId: "shoply_app_0123456789abcdef", code: "good", redirectUri: "http://127.0.0.1/cb", codeVerifier: "v".repeat(43), baseURL: api.url });
+    const native = new URLSearchParams(api.seen.at(-1).body.toString());
+    assert.equal(api.seen.at(-1).headers.authorization, undefined);
+    assert.equal(native.get("client_id"), "shoply_app_0123456789abcdef");
+    assert.equal(native.get("code_verifier"), "v".repeat(43));
+
+    await assert.rejects(
+      oauth.exchange({ clientId: "x", clientSecret: "y", code: "bad", redirectUri: "https://a.example", baseURL: api.url }),
+      (error) => error instanceof ShoplyError && error.status === 400 && error.code === "invalid_grant" && error.message === "The code is not right.",
+    );
+
+    await oauth.revoke({ clientId: "shoply_app_0123456789abcdef", clientSecret: "shoply_cs_secret", token: "shoply_at_x", baseURL: api.url });
+    assert.equal(api.seen.at(-1).path, "/v1/oauth/revoke");
+    assert.equal(new URLSearchParams(api.seen.at(-1).body.toString()).get("token"), "shoply_at_x");
+  } finally {
+    await api.close();
+  }
 });

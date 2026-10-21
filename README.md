@@ -75,4 +75,21 @@ await buyer.verify({ email, code });
 const me = await buyer.show();
 ```
 
+## OAuth
+
+An app that sellers connect to their own stores gets a token by OAuth, and passes it as `apiKey`.
+
+```js
+import Shoply, { oauth } from "@shoplygg/node";
+
+const pkce = await oauth.pkce();
+const url = oauth.authorizeUrl({ clientId, redirectUri, state, codeChallenge: pkce.challenge });
+
+// Back at your redirect URL:
+const token = await oauth.exchange({ clientId, clientSecret, code, redirectUri, codeVerifier: pkce.verifier });
+const shoply = new Shoply({ apiKey: token.accessToken, storeId: token.storeId });
+```
+
+How apps work: https://docs.shoply.gg/guides/oauth
+
 The whole guide: https://docs.shoply.gg/api-reference/node

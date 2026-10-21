@@ -13,7 +13,10 @@ export * from "./generated/api.js";
 export declare const VERSION: string;
 
 export interface ClientOptions {
-  /** `shoply_sk_...`, made under Developers, API Keys. Left out, SHOPLY_API_KEY from the environment. */
+  /**
+   * `shoply_sk_...`, made under Developers, API Keys, or an app's token (`shoply_at_...`) from
+   * `oauth.exchange()`. Left out, SHOPLY_API_KEY from the environment.
+   */
   apiKey?: string;
   /** The store's ID. Left out, it is asked of the key the first time it is needed. */
   storeId?: string;
@@ -118,6 +121,7 @@ export declare class Shoply {
   static readonly VERSION: string;
   static readonly EVENTS: readonly WebhookEventName[];
   static readonly webhooks: Webhooks;
+  static readonly oauth: OAuth;
   constructor(options?: ClientOptions);
   /** The store the key belongs to, asked once and remembered. */
   storeId(): Promise<string>;
@@ -182,5 +186,43 @@ export interface Webhooks {
 }
 
 export declare const webhooks: Webhooks;
+
+/** What a code is swapped for: a token of the seller's store, until they disconnect the app. */
+export interface OAuthToken {
+  /** `shoply_at_...`: pass it as `apiKey`. */
+  accessToken: string;
+  tokenType: "Bearer";
+  /** What the seller approved: every permission the app asks for. */
+  scopes: string[];
+  /** The store it is for. */
+  storeId: string;
+}
+
+export interface OAuth {
+  /** The page to send a seller to. `state` is yours, sent back unchanged: check it. */
+  authorizeUrl(options: { clientId: string; redirectUri: string; state?: string; codeChallenge?: string; dashboardURL?: string }): string;
+  /** A PKCE pair: keep `verifier` until the code comes back, and send `challenge`. */
+  pkce(): Promise<{ verifier: string; challenge: string; method: "S256" }>;
+  /** A random `state`, to keep with the seller's session and compare when they come back. */
+  state(): string;
+  /**
+   * The code swapped for the token: with the client secret on a server, or with the PKCE
+   * verifier from a desktop or phone app. Throws a ShoplyError whose `code` is OAuth's word
+   * (`invalid_grant`, `invalid_client`).
+   */
+  exchange(options: {
+    clientId: string;
+    clientSecret?: string;
+    code: string;
+    redirectUri: string;
+    codeVerifier?: string;
+    baseURL?: string;
+    fetch?: typeof fetch;
+  }): Promise<OAuthToken>;
+  /** A token given up: it stops working at once. */
+  revoke(options: { clientId: string; clientSecret?: string; token: string; baseURL?: string; fetch?: typeof fetch }): Promise<void>;
+}
+
+export declare const oauth: OAuth;
 
 export default Shoply;

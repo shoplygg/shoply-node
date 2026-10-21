@@ -21,6 +21,7 @@ export type KeyShowResult = {
     lastUsedAt: unknown;
     revokedAt: unknown;
   };
+  app: unknown;
   store: {
     id: string;
     name: string;
@@ -9826,6 +9827,8 @@ export interface ShoplyResourcesKey {
    *
    * What the key in the request is: its name, the permissions it carries, the addresses it accepts, and the store it belongs to with that store's ID. Make this your first call. Every other address needs the store's ID, and `api` in the answer is where that store's routes begin.
    *
+   * An app's token is a key of the store it was approved for, and `app` says which app it is (null for the store's own keys): an app connected to many stores asks this to learn which store a token is for.
+   *
    * Any live key may ask it, whatever its permissions.
    *
    * Any live API key may call this, whatever its permissions.
@@ -13003,6 +13006,8 @@ export type WebhookEventName =
   | "dispute.won"
   | "dispute.lost"
   | "dispute.closed"
+  | "app.connected"
+  | "app.disconnected"
   | "fraud.checkout_blocked"
   | "webhook.test";
 
@@ -13266,6 +13271,18 @@ export interface WebhookEventData {
    * `data`: The dispute, as [List disputes](https://docs.shoply.gg/api-reference/disputes/list-disputes) answers it: `status` is how it reads on the dashboard, `providerStatus` what the provider last said, `dueAt` when it stops taking an answer.
    */
   "dispute.closed": DisputesListItem & Record<string, unknown>;
+  /**
+   * The store's owner approved an app, and the app's server swapped the approval for its token. An app approved again is connected again, and its old token stops working.
+   *
+   * `data`: `id` (the connection), `appId`, `name`, `maker`, `website`, `scopes` (what the owner approved), `connectedAt`, and for `app.disconnected` `disconnectedAt` and `reason`: `seller`, `app`, `deleted`, or `code_reused` (the app's approval was offered twice, so its token was ended).
+   */
+  "app.connected": Record<string, unknown>;
+  /**
+   * An app stopped reaching the store: the owner disconnected it, the app gave its token up, or its developer deleted it. The endpoints it made are removed with it.
+   *
+   * `data`: `id` (the connection), `appId`, `name`, `maker`, `website`, `scopes` (what the owner approved), `connectedAt`, and for `app.disconnected` `disconnectedAt` and `reason`: `seller`, `app`, `deleted`, or `code_reused` (the app's approval was offered twice, so its token was ended).
+   */
+  "app.disconnected": Record<string, unknown>;
   /**
    * A checkout was turned away by the blacklist, a blocked country, the VPN rule or the limit on unpaid orders. The same buyer turned away again for the same reason within ten minutes is not sent again.
    *
