@@ -90,6 +90,7 @@ export type StoreShowResult = {
   hasDynamicSecret: boolean;
   dynamicSecretEnd: string;
   updatedAt: string;
+  settingsVersion: string;
 };
 
 /** What update the store takes: `store.update`. */
@@ -169,6 +170,8 @@ export interface StoreUpdateParams {
   businessCountry?: string;
   /** A line printed at the foot of every invoice. */
   invoiceFooter?: string;
+  /** The `settingsVersion` you last read. Sent, the change is refused with `stale_write` only if something this route saves has changed since; the store's other settings (Support Tickets on or off, its tax, its payment options and the like) changing is not that. Use it rather than `expectedUpdatedAt`, which every one of them moves. */
+  expectedVersion?: string;
   /** The `updatedAt` you last read. Sent, the change is refused with `stale_write` if the record has changed since. Left out, it is saved whatever happened in between. */
   expectedUpdatedAt?: string;
 }
@@ -232,6 +235,7 @@ export type StoreUpdateResult = {
   hasDynamicSecret: boolean;
   dynamicSecretEnd: string;
   updatedAt: string;
+  settingsVersion: string;
 };
 
 /** What change the store's address takes: `store.setAddress`. */
@@ -273,6 +277,7 @@ export type StoreEmailSettingsResult = {
   emailStockThreshold: number;
   emailPayoutsEnabled: boolean;
   emailCustomPaidEnabled: boolean;
+  emailTicketsEnabled: boolean;
   emailDisputeOpenedEnabled: boolean;
   emailDisputeClosedEnabled: boolean;
   testEmailEvery: {
@@ -287,12 +292,14 @@ export type StoreEmailSettingsResult = {
   discordReviewsEnabled: boolean;
   discordPayoutsEnabled: boolean;
   discordCustomPaidEnabled: boolean;
+  discordTicketsEnabled: boolean;
   discordDisputesEnabled: boolean;
   discordStockThreshold: number;
   discordFailure: unknown;
   storeName: string;
   emailAccent: string;
   updatedAt: string;
+  version: string;
 };
 
 /** What get the store's domain answers: `domain.show`. */
@@ -6650,6 +6657,295 @@ export type AffiliateProgrammeUpdateResult = {
   payouts: boolean;
 };
 
+/** What list support tickets takes: `tickets.list`. */
+export interface TicketsListParams {
+  /**
+   * Only these: `unresolved` is `open` and `answered` together.
+   *
+   * Left out, it is "all".
+   */
+  show?: "all" | "unresolved" | "open" | "answered" | "resolved";
+  /** Part of the subject, the buyer's email or the latest message, or the start of the ticket's or the order's ID. */
+  search?: string;
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+  /**
+   * How many a page holds, up to 100.
+   *
+   * Left out, it is 25.
+   */
+  perPage?: number;
+}
+
+/** A row of what list support tickets lists: `tickets.list`. */
+export type TicketsListItem = {
+  id: string;
+  email: string;
+  customerId: unknown;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  unread: boolean;
+  firstReplyAt: unknown;
+  answeredAt: unknown;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** What switch Support Tickets on or off takes: `tickets.settings`. */
+export interface TicketsSettingsParams {
+  /** Whether buyers can open tickets. */
+  on: boolean;
+}
+
+/** What switch Support Tickets on or off answers: `tickets.settings`. */
+export type TicketsSettingsResult = {
+  on: boolean;
+};
+
+/** What get a support ticket answers: `tickets.get`. */
+export type TicketsGetResult = {
+  id: string;
+  email: string;
+  customerId: unknown;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  unread: boolean;
+  firstReplyAt: unknown;
+  answeredAt: unknown;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: unknown;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  customer: {
+    id: unknown;
+    email: string;
+    tags: unknown[] | Record<string, unknown>;
+  };
+  order: {
+    id: string;
+    status: string;
+    amount: string;
+  };
+  orders: {
+    id: string;
+    status: string;
+    amount: string;
+    products: string[];
+    createdAt: string;
+  }[];
+  on: boolean;
+};
+
+/** What reply to a support ticket takes: `tickets.reply`. */
+export interface TicketsReplyParams {
+  /** The reply, up to 500 characters. */
+  message: string;
+  /**
+   * Mark the ticket resolved with the reply.
+   *
+   * Left out, it is false.
+   */
+  resolve?: boolean;
+}
+
+/** What reply to a support ticket answers: `tickets.reply`. */
+export type TicketsReplyResult = {
+  id: string;
+  email: string;
+  customerId: unknown;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  unread: boolean;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: unknown;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  customer: {
+    id: unknown;
+    email: string;
+    tags: unknown[] | Record<string, unknown>;
+  };
+  order: {
+    id: string;
+    status: string;
+    amount: string;
+  };
+  orders: {
+    id: string;
+    status: string;
+    amount: string;
+    products: string[];
+    createdAt: string;
+  }[];
+  on: boolean;
+};
+
+/** What resolve a support ticket answers: `tickets.resolve`. */
+export type TicketsResolveResult = {
+  id: string;
+  email: string;
+  customerId: unknown;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  unread: boolean;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: string;
+  resolvedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: string;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  customer: {
+    id: unknown;
+    email: string;
+    tags: unknown[] | Record<string, unknown>;
+  };
+  order: {
+    id: string;
+    status: string;
+    amount: string;
+  };
+  orders: {
+    id: string;
+    status: string;
+    amount: string;
+    products: string[];
+    createdAt: string;
+  }[];
+  on: boolean;
+};
+
+/** What reopen a support ticket answers: `tickets.reopen`. */
+export type TicketsReopenResult = {
+  id: string;
+  email: string;
+  customerId: unknown;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  unread: boolean;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: unknown;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  customer: {
+    id: unknown;
+    email: string;
+    tags: unknown[] | Record<string, unknown>;
+  };
+  order: {
+    id: string;
+    status: string;
+    amount: string;
+  };
+  orders: {
+    id: string;
+    status: string;
+    amount: string;
+    products: string[];
+    createdAt: string;
+  }[];
+  on: boolean;
+};
+
 /** What list blacklist rules takes: `blacklist.list`. */
 export interface BlacklistListParams {
   /**
@@ -9624,6 +9920,7 @@ export type CustomerShowResult = {
     imageUrl: unknown;
   }[];
   subscriptions: boolean;
+  support: boolean;
   downloads: {
     buttons: unknown[] | Record<string, unknown>;
     guideUrl: string;
@@ -10190,6 +10487,189 @@ export type CustomerSubscriptionsResumeResult = {
 
 /** What give another card answers: `customer.subscriptions.card`. */
 export type CustomerSubscriptionsCardResult = unknown;
+
+/** What list support tickets answers: `customer.tickets.list`. */
+export type CustomerTicketsListResult = {
+  id: string;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+}[];
+
+/** What open a support ticket takes: `customer.tickets.create`. */
+export interface CustomerTicketsCreateParams {
+  /** What it is about, up to 100 characters. */
+  subject: string;
+  /** The first message, up to 500 characters. */
+  message: string;
+  /** The order it is about, one of `meta.orders` on List support tickets. Left out, something else. */
+  order?: string;
+}
+
+/** What open a support ticket answers: `customer.tickets.create`. */
+export type CustomerTicketsCreateResult = {
+  id: string;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  firstReplyAt: unknown;
+  answeredAt: unknown;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: unknown;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  orderLabel: string;
+  orderProducts: string[];
+  orderMore: number;
+};
+
+/** What get a support ticket answers: `customer.tickets.show`. */
+export type CustomerTicketsShowResult = {
+  id: string;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: unknown;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  orderLabel: string;
+  orderProducts: string[];
+  orderMore: number;
+};
+
+/** What write on a support ticket takes: `customer.tickets.reply`. */
+export interface CustomerTicketsReplyParams {
+  /** The message, up to 500 characters. */
+  message: string;
+}
+
+/** What write on a support ticket answers: `customer.tickets.reply`. */
+export type CustomerTicketsReplyResult = {
+  id: string;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: unknown;
+  resolvedBy: unknown;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: unknown;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  orderLabel: string;
+  orderProducts: string[];
+  orderMore: number;
+};
+
+/** What resolve a support ticket answers: `customer.tickets.resolve`. */
+export type CustomerTicketsResolveResult = {
+  id: string;
+  orderId: string;
+  subject: string;
+  status: string;
+  messages: number;
+  pictures: number;
+  lastMessageAt: string;
+  lastFrom: string;
+  lastLine: string;
+  firstReplyAt: string;
+  answeredAt: string;
+  resolvedAt: string;
+  resolvedBy: string;
+  createdAt: string;
+  updatedAt: string;
+  conversation: Array<{
+    id: string;
+    from: string;
+    body: string;
+    pictures: unknown[] | Record<string, unknown>;
+    createdAt: string;
+  }>;
+  canReopenUntil: string;
+  limits: {
+    body: number;
+    subject: number;
+    picturesPerMessage: number;
+    picturesPerTicket: number;
+    pictureBytes: number;
+  };
+  orderLabel: string;
+  orderProducts: string[];
+  orderMore: number;
+};
 
 export interface ShoplyResourcesKey {
   /**
@@ -12440,6 +12920,79 @@ export interface ShoplyResourcesAffiliateProgramme {
   update(params?: AffiliateProgrammeUpdateParams, options?: RequestOptions): Promise<AffiliateProgrammeUpdateResult>;
 }
 
+export interface ShoplyResourcesTickets {
+  /**
+   * **List support tickets**
+   *
+   * The store's tickets, the latest message first. `status` is `open` (the buyer wrote last: Waiting on You on the dashboard), `answered` (the store did) or `resolved`, with `resolvedBy`: `store`, `buyer`, or `auto` (48 hours after the store's reply with no word from the buyer). `lastFrom` and `lastLine` are the latest message's author and first words, `unread` whether the store has opened it since the buyer last wrote, and `orderId` the order it is about, where the buyer picked one. `meta.on` is whether the store takes tickets (off, buyers can open none and the panel shows no Support), and `meta.figures` the dashboard's four: tickets waiting on the store and when the oldest was written, open ones, the average minutes to a first reply over the last 30 days and the 30 before, and how many were resolved in the last 30 days.
+   *
+   * Needs the `tickets.read` permission (Read Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/list-support-tickets
+   */
+  list(params?: TicketsListParams, options?: RequestOptions): PagePromise<TicketsListItem>;
+  /**
+   * **Switch Support Tickets on or off**
+   *
+   * Off for every store until switched on. Off, buyers can open no ticket and write on none, the customer panel shows no Support, and the store can resolve and reopen but not reply. The tickets are kept.
+   *
+   * Needs the `tickets.write` permission (Answer Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/switch-support-tickets-on-or-off
+   */
+  settings(params: TicketsSettingsParams, options?: RequestOptions): Promise<TicketsSettingsResult>;
+  /**
+   * **Get a support ticket**
+   *
+   * A ticket with its `conversation`, oldest first: each message's `from` (`buyer` or `store`), `body`, `pictures` (each one's `name` and the `url` the dashboard reads it at; read it with Get a ticket's picture) and `createdAt`. `customer` is who wrote it, with their tags, `order` the order it is about, `orders` their five latest, and `canReopenUntil` the last moment the buyer can open a resolved ticket again by writing on it. Reading a ticket marks it read, as opening it on the dashboard does.
+   *
+   * Needs the `tickets.read` permission (Read Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/get-a-support-ticket
+   */
+  get(ticketId: string, options?: RequestOptions): Promise<TicketsGetResult>;
+  /**
+   * **Reply to a support ticket**
+   *
+   * Writes on the ticket as the store, which the buyer reads in their customer panel and is emailed (at most once a ticket in 15 minutes; what is written meanwhile follows when they are over). A reply to a resolved ticket opens it again, unless `resolve` is true. Refused with `tickets_off` while the store takes no tickets, since the buyer could not read it. Answers the ticket as Get a support ticket does.
+   *
+   * Needs the `tickets.write` permission (Answer Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/reply-to-a-support-ticket
+   */
+  reply(ticketId: string, params: TicketsReplyParams, options?: RequestOptions): Promise<TicketsReplyResult>;
+  /**
+   * **Resolve a support ticket**
+   *
+   * Marks it resolved, by the store. The buyer can still write on it for 30 days, which opens it again. One already resolved is left as it is.
+   *
+   * Needs the `tickets.write` permission (Answer Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/resolve-a-support-ticket
+   */
+  resolve(ticketId: string, options?: RequestOptions): Promise<TicketsResolveResult>;
+  /**
+   * **Reopen a support ticket**
+   *
+   * Opens a resolved ticket again: `open` where the buyer wrote last, else `answered`. One that is not resolved is left as it is.
+   *
+   * Needs the `tickets.write` permission (Answer Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/reopen-a-support-ticket
+   */
+  reopen(ticketId: string, options?: RequestOptions): Promise<TicketsReopenResult>;
+  /**
+   * **Get a ticket's picture**
+   *
+   * A picture sent in the conversation: a PNG, JPEG or WebP of up to 5 MB, read out of the picture itself when it was sent.
+   *
+   * Needs the `tickets.read` permission (Read Support Tickets).
+   *
+   * @see https://docs.shoply.gg/api-reference/support-tickets/get-a-tickets-picture
+   */
+  picture(ticketId: string, name: string, options?: RequestOptions): Promise<Response>;
+}
+
 export interface ShoplyResourcesBlacklist {
   /**
    * **List blacklist rules**
@@ -13255,6 +13808,7 @@ export interface ShoplyResources {
   customerTags: ShoplyResourcesCustomerTags;
   affiliates: ShoplyResourcesAffiliates;
   affiliateProgramme: ShoplyResourcesAffiliateProgramme;
+  tickets: ShoplyResourcesTickets;
   blacklist: ShoplyResourcesBlacklist;
   fraudEvents: ShoplyResourcesFraudEvents;
   fraudSettings: ShoplyResourcesFraudSettings;
@@ -13441,10 +13995,74 @@ export interface ShoplyCustomerResourcesSubscriptions {
   card(subscriptionId: string, options?: RequestOptions): Promise<CustomerSubscriptionsCardResult>;
 }
 
+export interface ShoplyCustomerResourcesTickets {
+  /**
+   * **List support tickets**
+   *
+   * The buyer's support tickets at the store, the latest message first. `status` is `open` (waiting on the store), `answered` or `resolved`. `meta.on` is whether the store takes tickets (off, the list is empty and nothing can be opened), `meta.canOpen` whether the buyer may open one now (one open ticket at a time), `meta.orders` the orders a ticket can be about, each with its `label`, and `meta.limits` what a message may hold.
+   *
+   * Needs the buyer's token: `Authorization: Bearer shoply_ct_...`, from Sign in with the code.
+   *
+   * It is counted for the buyer's token: 300 reads in ten minutes.
+   *
+   * @see https://docs.shoply.gg/api-reference/customer-api/list-support-tickets
+   */
+  list(options?: RequestOptions): Promise<CustomerTicketsListResult>;
+  /**
+   * **Open a support ticket**
+   *
+   * Opens a ticket with its first message, which the store is told of. One open ticket a buyer at a time (`ticket_open`), 250 open at a store (`store_full`), and 100 messages a day a buyer (`daily_limit`). Refused with `tickets_off` where the store takes none. Pictures are sent from the customer panel. Answers the ticket as Get a support ticket does, and the list in `meta`.
+   *
+   * Needs the buyer's token: `Authorization: Bearer shoply_ct_...`, from Sign in with the code.
+   *
+   * It is counted for the buyer's token: 30 changes in ten minutes.
+   *
+   * @see https://docs.shoply.gg/api-reference/customer-api/open-a-support-ticket
+   */
+  create(params: CustomerTicketsCreateParams, options?: RequestOptions): Promise<CustomerTicketsCreateResult>;
+  /**
+   * **Get a support ticket**
+   *
+   * A ticket with its `conversation`, oldest first: each message's `from` (`buyer` or `store`), `body`, `pictures` and `createdAt`. A picture is named here and shown in the customer panel. `canReopenUntil` is the last moment writing on a resolved ticket opens it again.
+   *
+   * Needs the buyer's token: `Authorization: Bearer shoply_ct_...`, from Sign in with the code.
+   *
+   * It is counted for the buyer's token: 300 reads in ten minutes.
+   *
+   * @see https://docs.shoply.gg/api-reference/customer-api/get-a-support-ticket
+   */
+  show(ticketId: string, options?: RequestOptions): Promise<CustomerTicketsShowResult>;
+  /**
+   * **Write on a support ticket**
+   *
+   * Writes on the ticket as the buyer, which the store is told of. On a resolved ticket within 30 days it opens it again, if the buyer has no other open ticket; after that, `too_old`. Answers the ticket.
+   *
+   * Needs the buyer's token: `Authorization: Bearer shoply_ct_...`, from Sign in with the code.
+   *
+   * It is counted for the buyer's token: 30 changes in ten minutes.
+   *
+   * @see https://docs.shoply.gg/api-reference/customer-api/write-on-a-support-ticket
+   */
+  reply(ticketId: string, params: CustomerTicketsReplyParams, options?: RequestOptions): Promise<CustomerTicketsReplyResult>;
+  /**
+   * **Resolve a support ticket**
+   *
+   * Marks the buyer's ticket resolved, as their "Mark as Resolved" does. Answers the ticket.
+   *
+   * Needs the buyer's token: `Authorization: Bearer shoply_ct_...`, from Sign in with the code.
+   *
+   * It is counted for the buyer's token: 30 changes in ten minutes.
+   *
+   * @see https://docs.shoply.gg/api-reference/customer-api/resolve-a-support-ticket
+   */
+  resolve(ticketId: string, options?: RequestOptions): Promise<CustomerTicketsResolveResult>;
+}
+
 export interface ShoplyCustomerResources {
   orders: ShoplyCustomerResourcesOrders;
   affiliate: ShoplyCustomerResourcesAffiliate;
   subscriptions: ShoplyCustomerResourcesSubscriptions;
+  tickets: ShoplyCustomerResourcesTickets;
   /**
    * **Send a sign-in code**
    *
@@ -13566,6 +14184,10 @@ export type WebhookEventName =
   | "dispute.closed"
   | "app.connected"
   | "app.disconnected"
+  | "ticket.opened"
+  | "ticket.message"
+  | "ticket.resolved"
+  | "ticket.reopened"
   | "fraud.checkout_blocked"
   | "webhook.test";
 
@@ -13877,6 +14499,30 @@ export interface WebhookEventData {
    * `data`: `id` (the connection), `appId`, `name`, `maker`, `website`, `scopes` (what the owner approved), `connectedAt`, and for `app.disconnected` `disconnectedAt` and `reason`: `seller`, `app`, `deleted`, or `code_reused` (the app's approval was offered twice, so its token was ended).
    */
   "app.disconnected": Record<string, unknown>;
+  /**
+   * A buyer opened a support ticket from the customer panel, or the store's own site through the customer API.
+   *
+   * `data`: The ticket, as [Get a support ticket](https://docs.shoply.gg/api-reference/support-tickets/get-a-support-ticket) answers it without its conversation: `status` is `open` (the buyer wrote last), `answered` or `resolved`, and `resolvedBy` says who resolved it (`store`, `buyer` or `auto`). `ticket.message` adds `message`: its `id`, `from` (`buyer` or `store`), `body`, `pictures` (each one's `name`, read with a key) and `createdAt`.
+   */
+  "ticket.opened": TicketsGetResult & Record<string, unknown>;
+  /**
+   * A message was written on a ticket, by the buyer or the store. Not sent for the message a ticket is opened with: that is `ticket.opened`.
+   *
+   * `data`: The ticket, as [Get a support ticket](https://docs.shoply.gg/api-reference/support-tickets/get-a-support-ticket) answers it without its conversation: `status` is `open` (the buyer wrote last), `answered` or `resolved`, and `resolvedBy` says who resolved it (`store`, `buyer` or `auto`). `ticket.message` adds `message`: its `id`, `from` (`buyer` or `store`), `body`, `pictures` (each one's `name`, read with a key) and `createdAt`.
+   */
+  "ticket.message": Record<string, unknown>;
+  /**
+   * A ticket was marked resolved: by the store, by the buyer, or by itself 48 hours after the store's reply with no word from the buyer.
+   *
+   * `data`: The ticket, as [Get a support ticket](https://docs.shoply.gg/api-reference/support-tickets/get-a-support-ticket) answers it without its conversation: `status` is `open` (the buyer wrote last), `answered` or `resolved`, and `resolvedBy` says who resolved it (`store`, `buyer` or `auto`). `ticket.message` adds `message`: its `id`, `from` (`buyer` or `store`), `body`, `pictures` (each one's `name`, read with a key) and `createdAt`.
+   */
+  "ticket.resolved": TicketsGetResult & Record<string, unknown>;
+  /**
+   * A resolved ticket was opened again: the buyer wrote on it within 30 days, or the store reopened it.
+   *
+   * `data`: The ticket, as [Get a support ticket](https://docs.shoply.gg/api-reference/support-tickets/get-a-support-ticket) answers it without its conversation: `status` is `open` (the buyer wrote last), `answered` or `resolved`, and `resolvedBy` says who resolved it (`store`, `buyer` or `auto`). `ticket.message` adds `message`: its `id`, `from` (`buyer` or `store`), `body`, `pictures` (each one's `name`, read with a key) and `createdAt`.
+   */
+  "ticket.reopened": TicketsGetResult & Record<string, unknown>;
   /**
    * A checkout was turned away by the blacklist, a blocked country, the VPN rule or the limit on unpaid orders. The same buyer turned away again for the same reason within ten minutes is not sent again.
    *
