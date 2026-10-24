@@ -659,6 +659,7 @@ export type AnalyticsOverviewResult = {
     refunded: number;
     cancelled: number;
     chargeback: number;
+    imported: number;
   };
   statusTotals: {
     completed: {
@@ -678,6 +679,10 @@ export type AnalyticsOverviewResult = {
       amount: number;
     };
     chargeback: {
+      orders: number;
+      amount: number;
+    };
+    imported: {
       orders: number;
       amount: number;
     };
@@ -2357,7 +2362,7 @@ export type CustomMethodsDeleteIconResult = unknown;
 /** What list products takes: `products.list`. */
 export interface ProductsListParams {
   /** Only products with this visibility. */
-  visibility?: "public" | "unlisted" | "private";
+  visibility?: "public" | "unlisted" | "private" | "on_hold";
   /** Only products whose name contains this. */
   search?: string;
 }
@@ -2436,11 +2441,11 @@ export interface ProductsCreateParams {
   /** What the product page says. Plain text with a few marks: a line that starts with `#` is a heading, one that starts with `-` is a point of a list, a blank line ends a paragraph, and `**bold**` and backticks for code work inside a line. */
   description?: string;
   /**
-   * `public` is listed and can be bought. `unlisted` can be bought by whoever has its link. `private` cannot be bought.
+   * `public` is listed and can be bought. `unlisted` can be bought by whoever has its link. `private` cannot be bought. `on_hold` is listed as a public product is and cannot be bought: its page says it is on hold, and every checkout refuses it.
    *
    * Left out, it is "public".
    */
-  visibility?: "public" | "unlisted" | "private";
+  visibility?: "public" | "unlisted" | "private" | "on_hold";
   /** The product's options, 1 to 100 of them, in the order buyers see them. A variant of the product that is not in this list is removed. */
   variants: Array<{
     /** An existing variant's ID, to keep it and change it. Left out, the entry is a new variant. */
@@ -2696,11 +2701,11 @@ export interface ProductsUpdateParams {
   /** What the product page says. Plain text with a few marks: a line that starts with `#` is a heading, one that starts with `-` is a point of a list, a blank line ends a paragraph, and `**bold**` and backticks for code work inside a line. */
   description?: string;
   /**
-   * `public` is listed and can be bought. `unlisted` can be bought by whoever has its link. `private` cannot be bought.
+   * `public` is listed and can be bought. `unlisted` can be bought by whoever has its link. `private` cannot be bought. `on_hold` is listed as a public product is and cannot be bought: its page says it is on hold, and every checkout refuses it.
    *
    * Left out, it is "public".
    */
-  visibility?: "public" | "unlisted" | "private";
+  visibility?: "public" | "unlisted" | "private" | "on_hold";
   /** The product's options, 1 to 100 of them, in the order buyers see them. A variant of the product that is not in this list is removed. */
   variants: Array<{
     /** An existing variant's ID, to keep it and change it. Left out, the entry is a new variant. */
@@ -2890,7 +2895,7 @@ export type ProductsDeleteResult = unknown;
 /** What set a product's visibility takes: `products.setVisibility`. */
 export interface ProductsSetVisibilityParams {
   /** The new visibility. */
-  visibility: "public" | "unlisted" | "private";
+  visibility: "public" | "unlisted" | "private" | "on_hold";
 }
 
 /** What set a product's visibility answers: `products.setVisibility`. */
@@ -2915,7 +2920,7 @@ export interface ProductsBulkUpdateParams {
   /** The products, by ID. Up to 250. */
   productIds: string[];
   /** A visibility for all of them. */
-  visibility?: "public" | "unlisted" | "private";
+  visibility?: "public" | "unlisted" | "private" | "on_hold";
   /** Whether all of them are marked as best sellers. */
   isBestSeller?: boolean;
   /** A payment method's name, and `block` or `allow`. `block` adds the method to each product's blocked list. `allow` takes it off the product and off every variant of it. */
@@ -3999,10 +4004,10 @@ export interface OrdersListParams {
    */
   perPage?: number;
   /** Only orders in this status. */
-  status?: "pending" | "completed" | "refunded" | "cancelled" | "chargeback";
+  status?: "pending" | "completed" | "refunded" | "cancelled" | "chargeback" | "imported";
   /** Only orders paid with this payment method, by its name in the payment methods list. */
   gateway?: string;
-  /** An order's ID, or part of a buyer's email. */
+  /** An order's ID, an imported order's ID on the platform it came from, or part of a buyer's email. */
   search?: string;
   /**
    * What the list is ordered by.
@@ -4067,6 +4072,7 @@ export type OrdersListItem = {
   paidAt: unknown;
   note: string;
   customFields: unknown[] | Record<string, unknown>;
+  imported: unknown;
   emailState: string;
   emailError: string;
   emailAttempts: number;
@@ -4106,10 +4112,10 @@ export type OrdersListItem = {
 /** What export orders takes: `orders.export`. */
 export interface OrdersExportParams {
   /** Only orders in this status. */
-  status?: "pending" | "completed" | "refunded" | "cancelled" | "chargeback";
+  status?: "pending" | "completed" | "refunded" | "cancelled" | "chargeback" | "imported";
   /** Only orders paid with this payment method, by its name in the payment methods list. */
   gateway?: string;
-  /** An order's ID, or part of a buyer's email. */
+  /** An order's ID, an imported order's ID on the platform it came from, or part of a buyer's email. */
   search?: string;
   /**
    * What the list is ordered by.
@@ -4182,6 +4188,7 @@ export type OrdersShowResult = {
   paidAt: string;
   note: string;
   customFields: unknown[] | Record<string, unknown>;
+  imported: unknown;
   emailState: string;
   emailError: string;
   emailAttempts: number;
@@ -4252,6 +4259,10 @@ export type OrdersShowResult = {
     kind: string;
     detail: string;
     actor: string;
+    by: {
+      name: string;
+      kind: string;
+    };
     at: string;
   }[];
   testPayment: boolean;
@@ -4564,6 +4575,7 @@ export type ReviewsListItem = {
   rating: number;
   message: string;
   automatic: boolean;
+  imported: boolean;
   dateCreated: string;
   items: {
     productId: string;
@@ -4625,6 +4637,7 @@ export type CouponsListItem = {
   active: boolean;
   appliesTo: string;
   targets: unknown[] | Record<string, unknown>;
+  customerTag: unknown;
   sort: number;
   discountGiven: number;
   revenue: number;
@@ -4681,6 +4694,8 @@ export interface CouponsCreateParams {
     /** One variant of it. Left out, every variant. */
     variantId?: string;
   }[];
+  /** Who may use it: empty for anybody with the code, `vip`, or the ID of one of the store's tags. The buyer's email has to wear the tag when the code is applied and when they pay. */
+  customerTag?: string;
 }
 
 /** What create a coupon answers: `coupons.create`. */
@@ -4699,6 +4714,7 @@ export type CouponsCreateResult = {
   active: boolean;
   appliesTo: string;
   targets: unknown[] | Record<string, unknown>;
+  customerTag: unknown;
   sort: number;
   discountGiven: number;
   revenue: number;
@@ -4755,6 +4771,8 @@ export interface CouponsUpdateParams {
     /** One variant of it. Left out, every variant. */
     variantId?: string;
   }[];
+  /** Who may use it: empty for anybody with the code, `vip`, or the ID of one of the store's tags. The buyer's email has to wear the tag when the code is applied and when they pay. */
+  customerTag?: string;
   /** The `updatedAt` you last read. Sent, the change is refused with `stale_write` if the record has changed since. Left out, it is saved whatever happened in between. */
   expectedUpdatedAt?: string;
 }
@@ -4775,6 +4793,7 @@ export type CouponsUpdateResult = {
   active: boolean;
   appliesTo: string;
   targets: unknown[] | Record<string, unknown>;
+  customerTag: unknown;
   sort: number;
   discountGiven: number;
   revenue: number;
@@ -5633,19 +5652,19 @@ export interface CartRecoveryUpdateParams {
   firstOn?: boolean;
   /** Minutes after the buyer left. One of 30, 60, 120, 240. */
   firstMinutes?: number;
-  /** Its subject, up to 150 characters. */
+  /** Its subject, up to 150 characters. It may hold the email's variables, such as `{{ store.name }}`; one whose marks cannot be read is refused. */
   firstSubject?: string;
   /** Whether the declined card email takes the first one's place after a card was turned down. */
   declinedOn?: boolean;
   /** Minutes after the decline. One of 5, 15, 30, 60. */
   declinedMinutes?: number;
-  /** Its subject, up to 150 characters. */
+  /** Its subject, up to 150 characters. It may hold the email's variables, such as `{{ store.name }}`; one whose marks cannot be read is refused. */
   declinedSubject?: string;
   /** Whether the second email is sent. */
   secondOn?: boolean;
   /** Minutes after the buyer left. One of 720, 1200, 1440, 2880. */
   secondMinutes?: number;
-  /** Its subject, up to 150 characters. */
+  /** Its subject, up to 150 characters. It may hold the email's variables, such as `{{ store.name }}`; one whose marks cannot be read is refused. */
   secondSubject?: string;
   /** The percent off its coupon. One of 0, 5, 10, 15, 20, 25. 0 sends it with no coupon. */
   secondPercent?: number;
@@ -5769,13 +5788,13 @@ export interface WinBackUpdateParams {
   firstOn?: boolean;
   /** Days after a buyer's last order. One of 14, 21, 30, 45, 60, 90. */
   firstDays?: number;
-  /** Its subject, up to 150 characters. */
+  /** Its subject, up to 150 characters. It may hold the email's variables, such as `{{ store.name }}`; one whose marks cannot be read is refused. */
   firstSubject?: string;
   /** Whether the second email is sent. */
   secondOn?: boolean;
   /** Days after the first. One of 3, 7, 14, 21, 30. */
   secondDays?: number;
-  /** Its subject, up to 150 characters. */
+  /** Its subject, up to 150 characters. It may hold the email's variables, such as `{{ store.name }}`; one whose marks cannot be read is refused. */
   secondSubject?: string;
   /** The percent off its coupon. One of 0, 5, 10, 15, 20, 25. 0 sends it with no coupon. */
   secondPercent?: number;
@@ -5970,6 +5989,181 @@ export type SubscribersUnsubscribeResult = {
   orderId: string;
   unsubscribedAt: string;
   unsubscribedBy: string;
+};
+
+/** What list email templates answers: `emailTemplates.list`. */
+export type EmailTemplatesListResult = {
+  kind: string;
+  group: string;
+  name: string;
+  when: string;
+  edited: boolean;
+  html: boolean;
+  css: boolean;
+  subject: boolean;
+  updatedAt: unknown;
+}[];
+
+/** What get the shared email CSS answers: `emailTemplates.shared`. */
+export type EmailTemplatesSharedResult = {
+  css: string;
+  updatedAt: string;
+  baseCss: string;
+};
+
+/** What change the shared email CSS takes: `emailTemplates.saveShared`. */
+export interface EmailTemplatesSaveSharedParams {
+  /** The whole look, or null for Shoply's. */
+  css: string;
+  /** The `updatedAt` you read; one changed since is refused with `stale_write`. */
+  expectedUpdatedAt?: string;
+}
+
+/** What change the shared email CSS answers: `emailTemplates.saveShared`. */
+export type EmailTemplatesSaveSharedResult = {
+  css: string;
+  updatedAt: string;
+  baseCss: string;
+};
+
+/** What get an email template answers: `emailTemplates.show`. */
+export type EmailTemplatesShowResult = {
+  kind: string;
+  group: string;
+  name: string;
+  when: string;
+  marketing: boolean;
+  required: string[];
+  variables: {
+    name: string;
+    about: string;
+  }[];
+  parts: {
+    name: string;
+    about: string;
+  }[];
+  original: string;
+  originalSubject: string;
+  originalSubjectSource: string;
+  html: unknown;
+  css: unknown;
+  subject: unknown;
+  updatedAt: unknown;
+  shared: unknown;
+  baseCss: string;
+  accent: string;
+};
+
+/** What change an email template takes: `emailTemplates.update`. */
+export interface EmailTemplatesUpdateParams {
+  /** The email's HTML, or null for the original. */
+  html?: string;
+  /** Its whole look, or null to follow the shared CSS. The look it would get anyway is saved as null. */
+  css?: string;
+  /** Its subject, or null for the original. */
+  subject?: string;
+  /** The `updatedAt` you read; a template changed since is refused with `stale_write`. */
+  expectedUpdatedAt?: string;
+}
+
+/** What change an email template answers: `emailTemplates.update`. */
+export type EmailTemplatesUpdateResult = {
+  kind: string;
+  group: string;
+  name: string;
+  when: string;
+  marketing: boolean;
+  required: string[];
+  variables: {
+    name: string;
+    about: string;
+  }[];
+  parts: {
+    name: string;
+    about: string;
+  }[];
+  original: string;
+  originalSubject: string;
+  originalSubjectSource: string;
+  html: unknown;
+  css: string;
+  subject: string;
+  updatedAt: string;
+  shared: unknown;
+  baseCss: string;
+  accent: string;
+};
+
+/** What preview an email template takes: `emailTemplates.preview`. */
+export interface EmailTemplatesPreviewParams {
+  /** HTML to preview in place of what is saved; null for the original. */
+  html?: string;
+  /** Its whole look, to preview in place of what is saved. */
+  css?: string;
+  /** A subject to preview in place of what is saved. */
+  subject?: string;
+  /** The look every email gets, in place of what is saved. */
+  shared?: string;
+}
+
+/** What preview an email template answers: `emailTemplates.preview`. */
+export type EmailTemplatesPreviewResult = {
+  subject: string;
+  html: string;
+  text: string;
+  parts: {
+    delivery: string;
+    buttons: string;
+    summary: string;
+    reply_note: string;
+  };
+  values: {
+    "store.name": string;
+    "store.url": string;
+    "store.panel_url": string;
+    "buyer.email": string;
+    "order.id": string;
+    "order.paid_at": string;
+    "order.total": string;
+    "order.paid_with": string;
+    "order.invoice_attached": boolean;
+    "links.order": string;
+    "links.review": string;
+    year: string;
+  };
+  problems: {
+    html: unknown[] | Record<string, unknown>;
+    css: unknown[] | Record<string, unknown>;
+    subject: unknown[] | Record<string, unknown>;
+  };
+};
+
+/** What revert an email template answers: `emailTemplates.revert`. */
+export type EmailTemplatesRevertResult = {
+  kind: string;
+  group: string;
+  name: string;
+  when: string;
+  marketing: boolean;
+  required: string[];
+  variables: {
+    name: string;
+    about: string;
+  }[];
+  parts: {
+    name: string;
+    about: string;
+  }[];
+  original: string;
+  originalSubject: string;
+  originalSubjectSource: string;
+  html: unknown;
+  css: unknown;
+  subject: unknown;
+  updatedAt: unknown;
+  shared: unknown;
+  baseCss: string;
+  accent: string;
 };
 
 /** What list customers takes: `customers.list`. */
@@ -6282,6 +6476,7 @@ export type CustomerTagsListResult = {
   tone: string;
   automatic: boolean;
   customers: number;
+  coupons: number;
 }[];
 
 /** What add a customer tag takes: `customerTags.create`. */
@@ -6325,6 +6520,7 @@ export type CustomerTagsAutomaticResult = {
   tone: string;
   automatic: boolean;
   customers: number;
+  coupons: number;
 }[];
 
 /** What change a customer tag takes: `customerTags.update`. */
@@ -6948,6 +7144,236 @@ export type TicketsReopenResult = {
     createdAt: string;
   }[];
   on: boolean;
+};
+
+/** What get the team answers: `team.get`. */
+export type TeamGetResult = {
+  teams: {
+    id: string;
+    name: string;
+    permissions: string[];
+    sensitive: number;
+    reach: string[];
+    people: {
+      id: string;
+      userId: string;
+      teamId: string;
+      name: string;
+      email: string;
+      avatarUrl: unknown;
+      invitedBy: string;
+      joinedAt: string;
+      lastSeenAt: unknown;
+      keys: number;
+      me: boolean;
+    }[];
+    waiting: number;
+    createdAt: string;
+    updatedAt: string;
+  }[];
+  invites: {
+    id: string;
+    kind: string;
+    email: string;
+    teamId: string;
+    team: string;
+    invitedBy: string;
+    sends: number;
+    sentAt: string;
+    expiresAt: string;
+    expired: boolean;
+  }[];
+  owner: {
+    userId: string;
+    name: unknown;
+    email: string;
+    avatarUrl: unknown;
+  };
+  me: {
+    role: string;
+    teamId: unknown;
+    permissions: string[];
+  };
+  permissions: {
+    groups: {
+      id: string;
+      title: string;
+      permissions: {
+        id: unknown;
+        label: unknown;
+        about: unknown;
+        sensitive: unknown;
+        needs: unknown;
+      }[];
+    }[];
+    presets: {
+      id: string;
+      name: string;
+      about: string;
+      permissions: string[];
+    }[];
+  };
+  limits: {
+    teams: number;
+    people: number;
+    name: number;
+    perInvite: number;
+    inviteDays: number;
+  };
+};
+
+/** What list activity takes: `team.activity`. */
+export interface TeamActivityParams {
+  /** Only one person's, by their `userId`. */
+  person?: string;
+  /** Only one part of the dashboard, by its group's `id` in Get the team's `permissions`. */
+  area?: string;
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+}
+
+/** A row of what list activity lists: `team.activity`. */
+export type TeamActivityItem = {
+  id: string;
+  userId: string;
+  name: string;
+  email: string;
+  team: string;
+  area: string;
+  summary: string;
+  subject: {
+    kind: string;
+    id: string;
+  };
+  at: string;
+};
+
+/** What create a team takes: `teams.create`. */
+export interface TeamsCreateParams {
+  /** What the team is called, up to 40 characters, once a store. */
+  name: string;
+  /** What its people may do, by name (List the team answers every permission in `permissions`). What a permission leans on is added with it: `stock.edit` brings `stock.view` and `products.view`. */
+  permissions: string[];
+}
+
+/** What create a team answers: `teams.create`. */
+export type TeamsCreateResult = {
+  id: string;
+  name: string;
+  permissions: string[];
+  sensitive: number;
+  reach: string[];
+  people: unknown[] | Record<string, unknown>;
+  waiting: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** What update a team takes: `teams.update`. */
+export interface TeamsUpdateParams {
+  /** What the team is called, up to 40 characters, once a store. */
+  name: string;
+  /** What its people may do, by name (List the team answers every permission in `permissions`). What a permission leans on is added with it: `stock.edit` brings `stock.view` and `products.view`. */
+  permissions: string[];
+}
+
+/** What update a team answers: `teams.update`. */
+export type TeamsUpdateResult = {
+  id: string;
+  name: string;
+  permissions: string[];
+  sensitive: number;
+  reach: string[];
+  people: unknown[] | Record<string, unknown>;
+  waiting: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+/** What delete a team answers: `teams.delete`. */
+export type TeamsDeleteResult = {
+  deleted: string;
+};
+
+/** What invite people takes: `team.invite`. */
+export interface TeamInviteParams {
+  /** The team they join. */
+  teamId: string;
+  /** The addresses to invite. */
+  emails?: string[];
+  /**
+   * `link` for a one-time link in place of emails.
+   *
+   * Left out, it is "email".
+   */
+  kind?: "email" | "link";
+}
+
+/** What invite people answers: `team.invite`. */
+export type TeamInviteResult = {
+  invites: {
+    id: string;
+    kind: string;
+    email: string;
+    teamId: string;
+    team: string;
+    invitedBy: string;
+    sends: number;
+    sentAt: string;
+    expiresAt: string;
+    expired: boolean;
+  }[];
+  skipped: unknown[] | Record<string, unknown>;
+};
+
+/** What send an invite again answers: `team.resendInvite`. */
+export type TeamResendInviteResult = {
+  id: string;
+  kind: string;
+  email: string;
+  teamId: string;
+  team: string;
+  invitedBy: string;
+  sends: number;
+  sentAt: string;
+  expiresAt: string;
+  expired: boolean;
+};
+
+/** What cancel an invite answers: `team.cancelInvite`. */
+export type TeamCancelInviteResult = {
+  deleted: string;
+};
+
+/** What move somebody to another team takes: `team.moveMember`. */
+export interface TeamMoveMemberParams {
+  /** The team they move to. */
+  teamId: string;
+}
+
+/** What move somebody to another team answers: `team.moveMember`. */
+export type TeamMoveMemberResult = {
+  id: string;
+  userId: string;
+  teamId: string;
+  name: string;
+  email: string;
+  avatarUrl: unknown;
+  invitedBy: string;
+  joinedAt: string;
+  lastSeenAt: unknown;
+  keys: number;
+  me: boolean;
+};
+
+/** What remove somebody from the team answers: `team.removeMember`. */
+export type TeamRemoveMemberResult = {
+  deleted: string;
+  keysStopped: number;
 };
 
 /** What list blacklist rules takes: `blacklist.list`. */
@@ -11805,7 +12231,7 @@ export interface ShoplyResourcesOrders {
   /**
    * **Get an order**
    *
-   * One order with everything its page shows: its lines and what each delivered, its payments, the buyer, its timeline, where it came from, `refund`, which says which ways it can be refunded, and `requests`: what Shoply sent your servers about it, each try of each webhook about the order and each line's dynamic delivery, newest first, with the first 300 characters of what came back. `customPayment` is for an order paid with one of your custom payment methods, and null for any other: the method's name, `status` (`open`, `review` while it waits for you to approve or reject it, `paid` or `rejected`), the amount, and `proof`, what the buyer sent when they said they paid (the reference, whether a proof of payment was sent, and when).
+   * One order with everything its page shows: its lines and what each delivered, its payments, the buyer, its timeline, where it came from, `refund`, which says which ways it can be refunded, and `requests`: what Shoply sent your servers about it, each try of each webhook about the order and each line's dynamic delivery, newest first, with the first 300 characters of what came back. `customPayment` is for an order paid with one of your custom payment methods, and null for any other: the method's name, `status` (`open`, `review` while it waits for you to approve or reject it, `paid` or `rejected`), the amount, and `proof`, what the buyer sent when they said they paid (the reference, whether a proof of payment was sent, and when). An order brought across by Platform Migration is found by its ID on the platform it came from as well, and answers with its own `id`; what it delivered there is in its items' `deliveredKeys`, a line of it each, where that platform says.
    *
    * Needs the `orders.read` permission (Read Orders).
    *
@@ -12042,7 +12468,7 @@ export interface ShoplyResourcesCoupons {
   /**
    * **Update a coupon**
    *
-   * Saves the coupon whole: send every field as it should be, not only what changed. A field left out goes back to its default. The exceptions are `appliesTo` and `targets`, which stay as they are when `appliesTo` is left out.
+   * Saves the coupon whole: send every field as it should be, not only what changed. A field left out goes back to its default. The exceptions are `appliesTo` and `targets`, which stay as they are when `appliesTo` is left out, and `customerTag`, which stays as it is when left out.
    *
    * Needs the `coupons.write` permission (Change Coupons).
    *
@@ -12630,6 +13056,79 @@ export interface ShoplyResourcesSubscribers {
   unsubscribe(params: SubscribersUnsubscribeParams, options?: RequestOptions): Promise<SubscribersUnsubscribeResult>;
 }
 
+export interface ShoplyResourcesEmailTemplates {
+  /**
+   * **List email templates**
+   *
+   * Every email a store can write, in the order the dashboard lists them: its `kind`, `group`, `name`, `when` it is sent, whether the store has `edited` it (and which of `html`, `css` and `subject`), and `updatedAt`. `meta.shared` is the CSS every email gets (`css`, null where it is Shoply's look, `baseCss`), and `meta.sendable` whether the store can send email at all.
+   *
+   * Needs the `emails.read` permission (Read Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/list-email-templates
+   */
+  list(options?: RequestOptions): Promise<EmailTemplatesListResult>;
+  /**
+   * **Get the shared email CSS**
+   *
+   * The look every email gets but one with a `css` of its own, as `css` (null where it is Shoply's look), `updatedAt`, and Shoply's look as `baseCss`, `var(--accent)` in it for the shop's colour.
+   *
+   * Needs the `emails.read` permission (Read Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/get-the-shared-email-css
+   */
+  shared(options?: RequestOptions): Promise<EmailTemplatesSharedResult>;
+  /**
+   * **Change the shared email CSS**
+   *
+   * The look every email gets but one with a `css` of its own, a whole sheet, checked as an email's own is; empty, null or `baseCss` as it is for none, which is Shoply's look. Saving one draws every email from its template, Shoply's original where the store has not written one.
+   *
+   * Needs the `emails.write` permission (Change Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/change-the-shared-email-css
+   */
+  saveShared(params: EmailTemplatesSaveSharedParams, options?: RequestOptions): Promise<EmailTemplatesSaveSharedResult>;
+  /**
+   * **Get an email template**
+   *
+   * One email: what it is, its `variables` and `parts` (each a `name` and what it is), the marks it must hold (`required`), its `original` HTML, what the store has saved, `shared` (the CSS every email gets), `baseCss` (Shoply's look for the classes the originals are written with) and `accent` (the shop's colour, which `var(--accent)` is). The email is drawn with `css`, else `shared`, else `baseCss`. Each of `html`, `css` and `subject` is the store's own, or null where it is Shoply's original. A CSS is a whole look, never rules over another: an email is drawn with its own `css`, else the shared CSS, else Shoply's look (`baseCss`), where `var(--accent)` is the shop's colour. The HTML is the email's card and the lines under it, with Liquid's marks for what changes from one buyer to the next: `{{ order.id }}` prints a value, escaped, and `{{ parts.delivery }}` a part only Shoply writes. `variables` and `parts` say which an email has. Shoply writes the page round it, its dark look, and a last line under it, "Sent with Shoply", which no template changes. `originalSubject` is the original subject as a sample buyer would get it, and `originalSubjectSource` the same written with its variables.
+   *
+   * Needs the `emails.read` permission (Read Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/get-an-email-template
+   */
+  show(kind: string, options?: RequestOptions): Promise<EmailTemplatesShowResult>;
+  /**
+   * **Change an email template**
+   *
+   * Changes each of `html`, `css` and `subject` sent, and keeps the rest; null, an empty string, or the original's own HTML puts that one back to the original. Answers the email as Get an email template does. Refused with `template_problems` while anything would stop it, `problems` saying what and on which line, for `html`, `css` and `subject`. The HTML may hold the tags an email is made of, never a script, a form, a frame or <style>, and its links go to https, http, mailto or #, its pictures to https; up to 64 KB. Comments are taken out when it is sent, which `problems` says as a warning. The CSS is the email's whole look, and the shared CSS no longer changes an email that has one: start from `shared`, or `baseCss` where it is null. It sets how things look, with type, class, id and attribute selectors, and @media; no url(), no position, and no < or backslash; up to 32 KB. A subject is one line of up to 150 characters, and may hold the email's variables. Before it is saved the email is drawn for a sample buyer, and refused where it closes a <div> it never opened, where a mark it must hold is in its code but not in what it draws (inside a comment, or under a condition that is false), or where its subject comes out empty. Cart Recovery's and Win-Back's emails must hold `{{ links.unsubscribe }}`, and their subjects are those Change Cart Recovery and Change Win-Back set.
+   *
+   * Needs the `emails.write` permission (Change Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/change-an-email-template
+   */
+  update(kind: string, params?: EmailTemplatesUpdateParams, options?: RequestOptions): Promise<EmailTemplatesUpdateResult>;
+  /**
+   * **Preview an email template**
+   *
+   * The email for a sample buyer as it would be sent with what you send in place of what is saved: its `subject`, the whole page as `html`, its plain `text`, the `values` its variables had, and `problems` as Change an email template would say them. Nothing is saved and nothing is sent.
+   *
+   * Needs the `emails.read` permission (Read Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/preview-an-email-template
+   */
+  preview(kind: string, params?: EmailTemplatesPreviewParams, options?: RequestOptions): Promise<EmailTemplatesPreviewResult>;
+  /**
+   * **Revert an email template**
+   *
+   * Puts the email back as Shoply wrote it: its HTML, CSS and subject. Answers it as Get an email template does.
+   *
+   * Needs the `emails.write` permission (Change Email Templates).
+   *
+   * @see https://docs.shoply.gg/api-reference/email-templates/revert-an-email-template
+   */
+  revert(kind: string, options?: RequestOptions): Promise<EmailTemplatesRevertResult>;
+}
+
 export interface ShoplyResourcesCustomers {
   /**
    * **List customers**
@@ -13015,6 +13514,112 @@ export interface ShoplyResourcesTickets {
    * @see https://docs.shoply.gg/api-reference/support-tickets/get-a-tickets-picture
    */
   picture(ticketId: string, name: string, options?: RequestOptions): Promise<Response>;
+}
+
+export interface ShoplyResourcesTeam {
+  /**
+   * **Get the team**
+   *
+   * The store's teams, each with its `permissions`, how many of them are `sensitive`, the parts of the dashboard it `reach`es, its `people` and how many invites are `waiting`; every `invite` not yet taken up; the store's `owner`, who is on no team and can do everything; and `permissions`, every permission there is in its `groups`, each with its `label`, what it lets a person do (`about`), whether it is `sensitive` and what it `needs`, and the `presets` a team can start from. `limits` says how many teams a store and people a team may have (10 and 30, invites not yet taken up counted among the people), how long a team's `name` may be, how many addresses one invite takes (`perInvite`) and how many days an invite lasts (`inviteDays`).
+   *
+   * Needs the `team.read` permission (Read the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/get-the-team
+   */
+  get(options?: RequestOptions): Promise<TeamGetResult>;
+  /**
+   * **List activity**
+   *
+   * Who did what at the store on the dashboard, the newest first, fifty a page: each line's `summary` ("Refunded order ..."), who did it as they were then (`name`, `email`, `team`, which is null for the owner), its `area` of the dashboard, and what it was about (`subject`). Every change and every export is a line, the owner's included; what a key does is not, and is in List API requests. Kept 365 days.
+   *
+   * Needs the `team.read` permission (Read the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/list-activity
+   */
+  activity(params?: TeamActivityParams, options?: RequestOptions): PagePromise<TeamActivityItem>;
+  /**
+   * **Invite people**
+   *
+   * Emails an invite to each address in `emails`, up to 10 at a time, from Shoply. An invite is taken up only by an account with that address, which they sign in with or make, and the store is then in their store switcher. Each runs out in 7 days. `skipped` names an address left out and why: the owner's, one on the team already, or one invited already. With `kind` set to `link` instead, it makes a one-time link anybody can take up, answered in `url` here and never again. Not to a team that holds a sensitive permission: invite to one of those on the dashboard. The store's owner is emailed when somebody joins.
+   *
+   * Needs the `team.write` permission (Manage the Team). It sends an email, and is counted against a budget of its own: 60 in ten minutes for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/invite-people
+   */
+  invite(params: TeamInviteParams, options?: RequestOptions): Promise<TeamInviteResult>;
+  /**
+   * **Send an invite again**
+   *
+   * Sends an email invite again, or makes a link again (answered in `meta.url`), with 7 days from now. The address or link sent before stops working.
+   *
+   * Needs the `team.write` permission (Manage the Team). It sends an email, and is counted against a budget of its own: 60 in ten minutes for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/send-an-invite-again
+   */
+  resendInvite(inviteId: string, options?: RequestOptions): Promise<TeamResendInviteResult>;
+  /**
+   * **Cancel an invite**
+   *
+   * Takes an invite back. Its email or link stops working.
+   *
+   * Needs the `team.write` permission (Manage the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/cancel-an-invite
+   */
+  cancelInvite(inviteId: string, options?: RequestOptions): Promise<TeamCancelInviteResult>;
+  /**
+   * **Move somebody to another team**
+   *
+   * They can do what the other team can from their next request. Not onto a team that holds a sensitive permission: do that on the dashboard.
+   *
+   * Needs the `team.write` permission (Manage the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/move-somebody-to-another-team
+   */
+  moveMember(memberId: string, params: TeamMoveMemberParams, options?: RequestOptions): Promise<TeamMoveMemberResult>;
+  /**
+   * **Remove somebody from the team**
+   *
+   * They can no longer reach the store. The API keys they made and the apps they connected stop working with them (`keysStopped` says how many), and the webhooks those made are deleted.
+   *
+   * Needs the `team.write` permission (Manage the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/remove-somebody-from-the-team
+   */
+  removeMember(memberId: string, options?: RequestOptions): Promise<TeamRemoveMemberResult>;
+}
+
+export interface ShoplyResourcesTeams {
+  /**
+   * **Create a team**
+   *
+   * A store holds up to 10 teams. A permission marked `sensitive` that the team did not hold before cannot be given with a key: give it on the dashboard, which asks the person to confirm it is them.
+   *
+   * Needs the `team.write` permission (Manage the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/create-a-team
+   */
+  create(params: TeamsCreateParams, options?: RequestOptions): Promise<TeamsCreateResult>;
+  /**
+   * **Update a team**
+   *
+   * Saves the team whole: its name and its permissions. Its people can do what it now holds from their next request. A permission marked `sensitive` that the team did not hold before cannot be given with a key: give it on the dashboard, which asks the person to confirm it is them.
+   *
+   * Needs the `team.write` permission (Manage the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/update-a-team
+   */
+  update(teamId: string, params: TeamsUpdateParams, options?: RequestOptions): Promise<TeamsUpdateResult>;
+  /**
+   * **Delete a team**
+   *
+   * Refused with `team_not_empty` while anybody is on it: move or remove them first. Its invites not yet taken up go with it.
+   *
+   * Needs the `team.write` permission (Manage the Team).
+   *
+   * @see https://docs.shoply.gg/api-reference/teams/delete-a-team
+   */
+  delete(teamId: string, options?: RequestOptions): Promise<TeamsDeleteResult>;
 }
 
 export interface ShoplyResourcesBlacklist {
@@ -13828,11 +14433,14 @@ export interface ShoplyResources {
   cartRecovery: ShoplyResourcesCartRecovery;
   winBack: ShoplyResourcesWinBack;
   subscribers: ShoplyResourcesSubscribers;
+  emailTemplates: ShoplyResourcesEmailTemplates;
   customers: ShoplyResourcesCustomers;
   customerTags: ShoplyResourcesCustomerTags;
   affiliates: ShoplyResourcesAffiliates;
   affiliateProgramme: ShoplyResourcesAffiliateProgramme;
   tickets: ShoplyResourcesTickets;
+  team: ShoplyResourcesTeam;
+  teams: ShoplyResourcesTeams;
   blacklist: ShoplyResourcesBlacklist;
   fraudEvents: ShoplyResourcesFraudEvents;
   fraudSettings: ShoplyResourcesFraudSettings;
@@ -14214,6 +14822,12 @@ export type WebhookEventName =
   | "ticket.message"
   | "ticket.resolved"
   | "ticket.reopened"
+  | "team.created"
+  | "team.updated"
+  | "team.deleted"
+  | "team.member_joined"
+  | "team.member_moved"
+  | "team.member_left"
   | "fraud.checkout_blocked"
   | "webhook.test";
 
@@ -14549,6 +15163,42 @@ export interface WebhookEventData {
    * `data`: The ticket, as [Get a support ticket](https://docs.shoply.gg/api-reference/support-tickets/get-a-support-ticket) answers it without its conversation: `status` is `open` (the buyer wrote last), `answered` or `resolved`, and `resolvedBy` says who resolved it (`store`, `buyer` or `auto`). `ticket.message` adds `message`: its `id`, `from` (`buyer` or `store`), `body`, `pictures` (each one's `name`, read with a key) and `createdAt`.
    */
   "ticket.reopened": TicketsGetResult & Record<string, unknown>;
+  /**
+   * A team was made at the store, with what its people may do.
+   *
+   * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
+   */
+  "team.created": Record<string, unknown>;
+  /**
+   * A team was renamed or given other permissions. Its people can do what it now holds from their next request.
+   *
+   * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
+   */
+  "team.updated": Record<string, unknown>;
+  /**
+   * A team with nobody on it was deleted, with its invites not yet taken up.
+   *
+   * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
+   */
+  "team.deleted": Record<string, unknown>;
+  /**
+   * Somebody took up an invite and can now reach the store from their store switcher.
+   *
+   * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
+   */
+  "team.member_joined": Record<string, unknown>;
+  /**
+   * Somebody on the team was moved to another team, and can do what that team holds.
+   *
+   * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
+   */
+  "team.member_moved": Record<string, unknown>;
+  /**
+   * Somebody can no longer reach the store: they were removed, or they left. The API keys they made and the apps they connected stopped working with them.
+   *
+   * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
+   */
+  "team.member_left": Record<string, unknown>;
   /**
    * A checkout was turned away by the blacklist, a blocked country, the VPN rule or the limit on unpaid orders. The same buyer turned away again for the same reason within ten minutes is not sent again.
    *
