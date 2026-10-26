@@ -2365,10 +2365,22 @@ export interface ProductsListParams {
   visibility?: "public" | "unlisted" | "private" | "on_hold";
   /** Only products whose name contains this. */
   search?: string;
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+  /**
+   * How many a page holds, up to 100. Asking for a page and not saying is 50.
+   *
+   * Left out, it is 50.
+   */
+  perPage?: number;
 }
 
-/** What list products answers: `products.list`. */
-export type ProductsListResult = Array<{
+/** A row of what list products lists: `products.list`. */
+export type ProductsListItem = {
   id: string;
   storeId: string;
   name: string;
@@ -2430,7 +2442,7 @@ export type ProductsListResult = Array<{
     blockedPaymentMethods: unknown[] | Record<string, unknown>;
   }>;
   runningSubscriptions: number;
-}>;
+};
 
 /** What create a product takes: `products.create`. */
 export interface ProductsCreateParams {
@@ -11252,7 +11264,7 @@ export interface ShoplyResourcesPaymentMethods {
    *
    * Takes a connected method off the checkout, or puts it back. Off keeps its credentials. On is refused for a method that is missing something it needs, which is put right in the dashboard. Answers the list again.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/payment-methods/switch-a-payment-method-on-or-off
    */
@@ -11262,7 +11274,7 @@ export interface ShoplyResourcesPaymentMethods {
    *
    * Sets the order the checkout offers payment methods in. The first is the one most buyers take. Name some of them and they are put in this order in the places they hold now, and the rest stay where they are: a custom payment method between two connected ones stays between them. A custom method is named by its id in `meta.order`. Answers the list again.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/payment-methods/sort-payment-methods
    */
@@ -11272,7 +11284,7 @@ export interface ShoplyResourcesPaymentMethods {
    *
    * Whether the checkout offers buyers their balance at the store. Answers the list again.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/payment-methods/switch-paying-with-balance-on-or-off
    */
@@ -11356,7 +11368,7 @@ export interface ShoplyResourcesStorefronts {
   /**
    * **List storefronts**
    *
-   * The store's storefronts: each a design of its site, on a theme. One of them is live (`meta.liveId`), which is the one buyers see. A store holds up to 10. `meta.themes` is the themes a new one can start from.
+   * The store's storefronts: each a design of its site, on a theme. One of them is live (`meta.liveId`), which is the one buyers see. A store holds as many as its plan does. `meta.themes` is the themes a new one can start from.
    *
    * Needs the `storefronts.read` permission (Read Storefronts).
    *
@@ -11368,7 +11380,7 @@ export interface ShoplyResourcesStorefronts {
    *
    * Adds a storefront as a draft: a theme's starting design, or a copy of one the store already has. Answers the store's storefronts with the new one among them.
    *
-   * Needs the `storefronts.write` permission (Change Storefronts).
+   * Needs the `storefronts.write` permission (Change Storefronts). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/storefronts/create-a-storefront
    */
@@ -11376,9 +11388,9 @@ export interface ShoplyResourcesStorefronts {
   /**
    * **Import a storefront**
    *
-   * Makes a new storefront, as a draft, from one that was exported: the JSON document "Export a storefront" answers under `storefront`, sent as `multipart/form-data` in a field called `file`. Nothing in it is trusted: its design is rebuilt from the theme, and each of its files is checked. One thing wrong refuses all of it, and the refusal names the file. `meta.imported` says which storefront it became and how many problems its code has to be fixed before it can be published.
+   * Makes a new storefront, as a draft, from one that was exported: the JSON document "Export a storefront" answers under `storefront`, sent as `multipart/form-data` in a field called `file`. Nothing in it is trusted: its design is rebuilt from the theme, and each of its files is checked. One thing wrong refuses all of it, and the refusal names the file. The document can be up to 50 MB, `import_too_large` past it; a storefront whose files are more than that is imported with fewer, and the rest saved after. `meta.imported` says which storefront it became and how many problems its code has to be fixed before it can be published.
    *
-   * Needs the `storefronts.write` permission (Change Storefronts).
+   * Needs the `storefronts.write` permission (Change Storefronts). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/storefronts/import-a-storefront
    */
@@ -11408,7 +11420,7 @@ export interface ShoplyResourcesStorefronts {
    *
    * Removes a storefront that is not the live one. Answers the storefronts that are left.
    *
-   * Needs the `storefronts.write` permission (Change Storefronts).
+   * Needs the `storefronts.write` permission (Change Storefronts). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/storefronts/delete-a-storefront
    */
@@ -11418,7 +11430,7 @@ export interface ShoplyResourcesStorefronts {
    *
    * Makes this storefront the one buyers see, as it was last published. Answers the store's storefronts again.
    *
-   * Needs the `storefronts.write` permission (Change Storefronts).
+   * Needs the `storefronts.write` permission (Change Storefronts). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/storefronts/make-a-storefront-live
    */
@@ -11634,7 +11646,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Adds a method, after every other at checkout. A store holds up to 10. Answers the new method.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/create-a-custom-payment-method
    */
@@ -11644,7 +11656,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Changes what is sent and keeps the rest. A payment already opened keeps what its buyer was told. Answers the store's custom methods again, as "List custom payment methods" does.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/update-a-custom-payment-method
    */
@@ -11654,7 +11666,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Its orders keep its name. Its ID is never used again. Answers the store's custom methods again, as "List custom payment methods" does.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/delete-a-custom-payment-method
    */
@@ -11664,7 +11676,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Answers the store's custom methods again, as "List custom payment methods" does.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/switch-a-custom-payment-method-on-or-off
    */
@@ -11674,7 +11686,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Puts the methods named in this order, in the places they hold now among the connected ones. To move one between connected methods, use "Sort payment methods" with its ID. Answers the store's custom methods again, as "List custom payment methods" does.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/sort-custom-payment-methods
    */
@@ -11684,7 +11696,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Sent as `multipart/form-data` in a field called `image`. It replaces the one it had. Answers the store's custom methods again, as "List custom payment methods" does.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/upload-a-custom-payment-methods-icon
    */
@@ -11694,7 +11706,7 @@ export interface ShoplyResourcesCustomMethods {
    *
    * Answers the store's custom methods again, as "List custom payment methods" does.
    *
-   * Needs the `payments.write` permission (Change Payment Methods).
+   * Needs the `payments.write` permission (Change Payment Methods). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
    *
    * @see https://docs.shoply.gg/api-reference/custom-payment-methods/remove-a-custom-payment-methods-icon
    */
@@ -11705,17 +11717,17 @@ export interface ShoplyResourcesProducts {
   /**
    * **List products**
    *
-   * Every product the store has, in the store's own order, each with its variants, pictures, categories and stock counts. A store holds up to 250 products, so the list is not paged.
+   * The store's products, in the store's own order, each with its variants, pictures, categories and stock counts. A store holds as many as its plan does, up to 1,000: ask for them a page at a time with `page` or `perPage`, and `pages` and `total` say how many there are. With neither, every product, in one answer.
    *
    * Needs the `products.read` permission (Read Products).
    *
    * @see https://docs.shoply.gg/api-reference/products/list-products
    */
-  list(params?: ProductsListParams, options?: RequestOptions): Promise<ProductsListResult>;
+  list(params?: ProductsListParams, options?: RequestOptions): PagePromise<ProductsListItem>;
   /**
    * **Create a product**
    *
-   * Adds a product with its variants. A store holds up to 250 products. Stock is added afterwards, a variant at a time, with the variant IDs in the answer.
+   * Adds a product with its variants. A store holds as many products as its plan does. Stock is added afterwards, a variant at a time, with the variant IDs in the answer.
    *
    * A refusal names the field, and for a variant its place in the list: `variants.0.price`.
    *
@@ -11802,7 +11814,7 @@ export interface ShoplyResourcesProductImages {
   /**
    * **Upload a product picture**
    *
-   * Adds a picture to the product, sent as `multipart/form-data` in a field called `image`. A product holds up to 10. The first one uploaded is the one listings show.
+   * Adds a picture to the product, sent as `multipart/form-data` in a field called `image`. A product holds as many as its store's plan does. The first one uploaded is the one listings show.
    *
    * Needs the `products.write` permission (Change Products).
    *
@@ -11845,7 +11857,7 @@ export interface ShoplyResourcesStock {
   /**
    * **Add license keys**
    *
-   * Adds license keys to a variant's stock, up to 5,000 in one request. A variant holds up to 5,000 unsold keys and a store 100,000.
+   * Adds license keys to a variant's stock, up to 5,000 in one request. A variant and a store each hold as many unsold keys as the store's plan does.
    *
    * A key sent twice is stocked twice, which is how one key is sold to several buyers. `duplicates` in the answer counts the ones that matched stock the variant already had, so sending the same batch a second time by mistake shows.
    *
@@ -11857,7 +11869,7 @@ export interface ShoplyResourcesStock {
   /**
    * **Replace a variant's license keys**
    *
-   * Makes the variant's unsold stock exactly the keys sent. Keys already delivered are not touched: they are order history, not stock.
+   * Makes the variant's unsold stock exactly the keys sent. Keys already delivered are not touched: they are order history, not stock. Up to 5,000 keys, and only for a variant with no more than that in stock: one with more is refused with `validation_error`, and its keys are added and deleted instead.
    *
    * Needs the `stock.write` permission (Change Stock).
    *
@@ -11899,7 +11911,7 @@ export interface ShoplyResourcesStock {
    *
    * The first of three steps to give a variant a file to deliver. This one says what the file is and answers a signed address to send it to. Then send the file itself to that address with a `PUT`. Then call "Finish a file upload".
    *
-   * A variant holds up to 3 files of up to 100 MB each, and a store up to 100 files and 5 GB. Accepted: ZIP, RAR, 7z, PDF, MP4, MP3, WAV, EPUB, EXE, DMG, MSI and APK.
+   * How many files a variant and a store hold, how large one may be and how much a store holds in all are the store's plan's. Accepted: ZIP, RAR, 7z, PDF, MP4, MP3, WAV, EPUB, EXE, DMG, MSI and APK.
    *
    * Needs the `stock.write` permission (Change Stock).
    *
@@ -11932,7 +11944,7 @@ export interface ShoplyResourcesCategories {
   /**
    * **List categories**
    *
-   * Every category the store has, in the store's own order, each with the products in it. A store holds up to 150, so the list is not paged.
+   * Every category the store has, in the store's own order, each with the products in it. A store holds as many as its plan does, 500 at most, so the list is not paged.
    *
    * Needs the `categories.read` permission (Read Categories).
    *
@@ -11942,7 +11954,7 @@ export interface ShoplyResourcesCategories {
   /**
    * **Create a category**
    *
-   * Adds a category, with the products that go in it. A store holds up to 150.
+   * Adds a category, with the products that go in it. A store holds as many as its plan does.
    *
    * Needs the `categories.write` permission (Change Categories).
    *
@@ -12005,7 +12017,7 @@ export interface ShoplyResourcesUpsells {
   /**
    * **List upsells**
    *
-   * Every upsell the store has, a kind at a time in the store's order, with the times each was shown, the paid orders that took it and what those lines came to over a period. A store holds up to 200.
+   * Every upsell the store has, a kind at a time in the store's order, with the times each was shown, the paid orders that took it and what those lines came to over a period. A store holds as many as its plan does.
    *
    * Needs the `upsells.read` permission (Read Upsells).
    *
@@ -12015,7 +12027,7 @@ export interface ShoplyResourcesUpsells {
   /**
    * **Create an upsell**
    *
-   * Adds an upsell of one kind. What it needs depends on the kind: see each field. A store holds up to 200.
+   * Adds an upsell of one kind. What it needs depends on the kind: see each field. A store holds as many as its plan does.
    *
    * Needs the `upsells.write` permission (Change Upsells).
    *
@@ -12118,7 +12130,7 @@ export interface ShoplyResourcesSubscriptions {
   /**
    * **Sell options as subscriptions**
    *
-   * Makes options subscriptions, or changes how often one renews. A change reaches new subscriptions only: a running one renews as it started. A store has up to 200 plans. The answer is every plan the store has.
+   * Makes options subscriptions, or changes how often one renews. A change reaches new subscriptions only: a running one renews as it started. A store has as many subscription options as its plan does. The answer is every plan the store has.
    *
    * Needs the `subscriptions.write` permission (Change Subscriptions).
    *
@@ -12577,7 +12589,7 @@ export interface ShoplyResourcesSales {
   /**
    * **List sales**
    *
-   * Every sale the store has, newest first. A store holds up to 30, so the list is not paged.
+   * Every sale the store has, newest first. A store holds as many as its plan does, 150 at most, so the list is not paged.
    *
    * Needs the `sales.read` permission (Read Sales).
    *
@@ -12587,7 +12599,7 @@ export interface ShoplyResourcesSales {
   /**
    * **Create a sale**
    *
-   * Adds a sale. A store holds up to 30.
+   * Adds a sale. A store holds as many as its plan does.
    *
    * Needs the `sales.write` permission (Change Sales).
    *
@@ -13520,7 +13532,7 @@ export interface ShoplyResourcesTeam {
   /**
    * **Get the team**
    *
-   * The store's teams, each with its `permissions`, how many of them are `sensitive`, the parts of the dashboard it `reach`es, its `people` and how many invites are `waiting`; every `invite` not yet taken up; the store's `owner`, who is on no team and can do everything; and `permissions`, every permission there is in its `groups`, each with its `label`, what it lets a person do (`about`), whether it is `sensitive` and what it `needs`, and the `presets` a team can start from. `limits` says how many teams a store and people a team may have (10 and 30, invites not yet taken up counted among the people), how long a team's `name` may be, how many addresses one invite takes (`perInvite`) and how many days an invite lasts (`inviteDays`).
+   * The store's teams, each with its `permissions`, how many of them are `sensitive`, the parts of the dashboard it `reach`es, its `people` and how many invites are `waiting`; every `invite` not yet taken up; the store's `owner`, who is on no team and can do everything; and `permissions`, every permission there is in its `groups`, each with its `label`, what it lets a person do (`about`), whether it is `sensitive` and what it `needs`, and the `presets` a team can start from. `limits` says how many teams the store and people a team may have on its plan (invites not yet taken up counted among the people), how long a team's `name` may be, how many addresses one invite takes (`perInvite`) and how many days an invite lasts (`inviteDays`).
    *
    * Needs the `team.read` permission (Read the Team).
    *
@@ -13593,7 +13605,7 @@ export interface ShoplyResourcesTeams {
   /**
    * **Create a team**
    *
-   * A store holds up to 10 teams. A permission marked `sensitive` that the team did not hold before cannot be given with a key: give it on the dashboard, which asks the person to confirm it is them.
+   * A store holds as many teams as its plan does (`limits.teams` in Get the team). A permission marked `sensitive` that the team did not hold before cannot be given with a key: give it on the dashboard, which asks the person to confirm it is them.
    *
    * Needs the `team.write` permission (Manage the Team).
    *
