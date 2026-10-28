@@ -1,6 +1,6 @@
 {
   "name": "@shoplygg/node",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Shoply's API from your own server: every route as a typed method, safe retries, pages, checking webhooks, and OAuth for apps.",
   "keywords": ["shoply", "api", "sdk", "ecommerce", "webhooks", "digital-goods"],
   "homepage": "https://docs.shoply.gg/api-reference/node",

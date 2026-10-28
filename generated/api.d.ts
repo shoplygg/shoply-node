@@ -2391,6 +2391,7 @@ export type ProductsListItem = {
   image: string;
   imageUrl: unknown;
   visibility: string;
+  planPaused: boolean;
   sort: number;
   isBestSeller: boolean;
   badges: {
@@ -2586,6 +2587,7 @@ export type ProductsCreateResult = {
   image: string;
   imageUrl: unknown;
   visibility: string;
+  planPaused: boolean;
   sort: number;
   isBestSeller: boolean;
   badges: {
@@ -2651,6 +2653,7 @@ export type ProductsShowResult = {
   image: string;
   imageUrl: unknown;
   visibility: string;
+  planPaused: boolean;
   sort: number;
   isBestSeller: boolean;
   badges: {
@@ -2848,6 +2851,7 @@ export type ProductsUpdateResult = {
   image: string;
   imageUrl: unknown;
   visibility: string;
+  planPaused: boolean;
   sort: number;
   isBestSeller: boolean;
   badges: {
@@ -4577,8 +4581,10 @@ export interface ReviewsListParams {
   rating?: number;
   /** Only reviews a buyer wrote, or only the ones given by themselves. */
   type?: "buyer" | "automatic";
-  /** A buyer's email, an order's ID, or words from a review. */
+  /** A buyer's email, an order's ID, or words from a review or its reply. */
   search?: string;
+  /** Only reviews the store has replied to, or only buyers' reviews it has not (an automatic review cannot be replied to). */
+  reply?: "replied" | "none";
 }
 
 /** A row of what list reviews lists: `reviews.list`. */
@@ -4589,6 +4595,10 @@ export type ReviewsListItem = {
   automatic: boolean;
   imported: boolean;
   dateCreated: string;
+  reply: {
+    message: string;
+    dateReplied: string;
+  };
   items: {
     productId: string;
     productName: string;
@@ -4608,6 +4618,81 @@ export type ReviewsListItem = {
     answer: string;
     dateCreated: string;
     dateDecided: unknown;
+  };
+};
+
+/** What reply to a review takes: `reviews.reply`. */
+export interface ReviewsReplyParams {
+  /** The reply, up to 1,000 characters. */
+  message: string;
+}
+
+/** What reply to a review answers: `reviews.reply`. */
+export type ReviewsReplyResult = {
+  review: {
+    id: string;
+    rating: number;
+    message: string;
+    automatic: boolean;
+    imported: boolean;
+    dateCreated: string;
+    reply: {
+      message: string;
+      dateReplied: string;
+    };
+    items: {
+      productId: string;
+      productName: string;
+      variantName: string;
+    }[];
+    orderId: string;
+    customerId: string;
+    email: string;
+    orderAmount: number;
+    currencyCode: string;
+    flag: {
+      id: string;
+      status: string;
+      reason: string;
+      reasonLabel: string;
+      note: string;
+      answer: string;
+      dateCreated: string;
+      dateDecided: unknown;
+    };
+  };
+};
+
+/** What remove a reply to a review answers: `reviews.removeReply`. */
+export type ReviewsRemoveReplyResult = {
+  review: {
+    id: string;
+    rating: number;
+    message: string;
+    automatic: boolean;
+    imported: boolean;
+    dateCreated: string;
+    reply: unknown;
+    items: {
+      productId: string;
+      productName: string;
+      variantName: string;
+    }[];
+    orderId: string;
+    customerId: string;
+    email: string;
+    orderAmount: number;
+    currencyCode: string;
+    flag: {
+      id: string;
+      status: string;
+      reason: string;
+      reasonLabel: string;
+      note: string;
+      answer: string;
+      dateCreated: string;
+      dateDecided: unknown;
+    };
   };
 };
 
@@ -6346,6 +6431,7 @@ export type CustomersShowResult = {
   blacklistedBy: unknown[] | Record<string, unknown>;
   blacklistRules: number;
   knownAddresses: number;
+  trusted: boolean;
   id: string;
   emailAddress: string;
   dateCreated: string;
@@ -6394,6 +6480,7 @@ export type CustomersSetBalanceResult = {
   blacklistedBy: unknown[] | Record<string, unknown>;
   blacklistRules: number;
   knownAddresses: number;
+  trusted: boolean;
 };
 
 /** What blacklist a customer takes: `customers.blacklist`. */
@@ -6439,6 +6526,7 @@ export type CustomersBlacklistResult = {
   }[];
   blacklistRules: number;
   knownAddresses: number;
+  trusted: boolean;
   added: number;
 };
 
@@ -6478,6 +6566,73 @@ export type CustomersUnblacklistResult = {
   blacklistedBy: unknown[] | Record<string, unknown>;
   blacklistRules: number;
   knownAddresses: number;
+  trusted: boolean;
+  removed: number;
+};
+
+/** What trust a customer takes: `customers.trust`. */
+export interface CustomersTrustParams {
+  /** Why. Kept with the entry. */
+  note?: string;
+}
+
+/** What trust a customer answers: `customers.trust`. */
+export type CustomersTrustResult = {
+  balance: number;
+  balanceAtCheckout: boolean;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
+  balanceHistory: {
+    id: string;
+    kind: string;
+    amount: number;
+    balanceAfter: number;
+    currencyCode: string;
+    note: string;
+    orderId: unknown;
+    by: string;
+    dateCreated: string;
+  }[];
+  affiliate: unknown;
+  blacklisted: boolean;
+  blacklistedBy: unknown[] | Record<string, unknown>;
+  blacklistRules: number;
+  knownAddresses: number;
+  trusted: boolean;
+  added: boolean;
+};
+
+/** What stop trusting a customer answers: `customers.untrust`. */
+export type CustomersUntrustResult = {
+  balance: number;
+  balanceAtCheckout: boolean;
+  tags: {
+    id: string;
+    name: string;
+    tone: string;
+    automatic: boolean;
+  }[];
+  balanceHistory: {
+    id: string;
+    kind: string;
+    amount: number;
+    balanceAfter: number;
+    currencyCode: string;
+    note: string;
+    orderId: unknown;
+    by: string;
+    dateCreated: string;
+  }[];
+  affiliate: unknown;
+  blacklisted: boolean;
+  blacklistedBy: unknown[] | Record<string, unknown>;
+  blacklistRules: number;
+  knownAddresses: number;
+  trusted: boolean;
   removed: number;
 };
 
@@ -7533,6 +7688,143 @@ export type BlacklistSetEnabledResult = {
   updatedAt: string;
 };
 
+/** What list allowlist entries takes: `allowlist.list`. */
+export interface AllowlistListParams {
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+  /**
+   * How many a page holds.
+   *
+   * Left out, it is 20.
+   */
+  perPage?: number;
+  /** Only entries that are in force, or only ones switched off. */
+  status?: "enabled" | "disabled";
+  /** Only entries of this type. */
+  type?: "email" | "ip" | "cidr";
+  /** Part of an entry's value or note. */
+  search?: string;
+}
+
+/** A row of what list allowlist entries lists: `allowlist.list`. */
+export type AllowlistListItem = {
+  id: string;
+  type: string;
+  value: string;
+  note: string;
+  enabled: boolean;
+  source: string;
+  customerId: unknown;
+  hits: number;
+  lastHitAt: unknown;
+  dateCreated: string;
+  updatedAt: string;
+};
+
+/** What create an allowlist entry takes: `allowlist.create`. */
+export interface AllowlistCreateParams {
+  /** What the entry lets through: an email address, an IP address, or a range of them (`cidr`). */
+  type: "email" | "ip" | "cidr";
+  /** What to match. */
+  value: string;
+  /** Why, up to 500 characters. */
+  note?: string;
+  /**
+   * Whether the entry is in force.
+   *
+   * Left out, it is true.
+   */
+  enabled?: boolean;
+}
+
+/** What create an allowlist entry answers: `allowlist.create`. */
+export type AllowlistCreateResult = {
+  id: string;
+  type: string;
+  value: string;
+  note: string;
+  enabled: boolean;
+  source: string;
+  customerId: unknown;
+  hits: number;
+  lastHitAt: unknown;
+  dateCreated: string;
+  updatedAt: string;
+};
+
+/** What export allowlist entries takes: `allowlist.export`. */
+export interface AllowlistExportParams {
+  /** Only entries that are in force, or only ones switched off. */
+  status?: "enabled" | "disabled";
+  /** Only entries of this type. */
+  type?: "email" | "ip" | "cidr";
+  /** Part of an entry's value or note. */
+  search?: string;
+  /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. Not counted against the store's exports, and refused with 429 where none are left. */
+  check?: "1";
+}
+
+/** What update an allowlist entry takes: `allowlist.update`. */
+export interface AllowlistUpdateParams {
+  /** What the entry lets through: an email address, an IP address, or a range of them (`cidr`). */
+  type: "email" | "ip" | "cidr";
+  /** What to match. */
+  value: string;
+  /** Why, up to 500 characters. */
+  note?: string;
+  /**
+   * Whether the entry is in force.
+   *
+   * Left out, it is true.
+   */
+  enabled?: boolean;
+}
+
+/** What update an allowlist entry answers: `allowlist.update`. */
+export type AllowlistUpdateResult = {
+  id: string;
+  type: string;
+  value: string;
+  note: string;
+  enabled: boolean;
+  source: string;
+  customerId: unknown;
+  hits: number;
+  lastHitAt: unknown;
+  dateCreated: string;
+  updatedAt: string;
+};
+
+/** What delete an allowlist entry answers: `allowlist.delete`. */
+export type AllowlistDeleteResult = {
+  id: string;
+};
+
+/** What switch an allowlist entry on or off takes: `allowlist.setEnabled`. */
+export interface AllowlistSetEnabledParams {
+  /** Whether the entry is in force. */
+  enabled: boolean;
+}
+
+/** What switch an allowlist entry on or off answers: `allowlist.setEnabled`. */
+export type AllowlistSetEnabledResult = {
+  id: string;
+  type: string;
+  value: string;
+  note: string;
+  enabled: boolean;
+  source: string;
+  customerId: unknown;
+  hits: number;
+  lastHitAt: unknown;
+  dateCreated: string;
+  updatedAt: string;
+};
+
 /** What list fraud events takes: `fraudEvents.list`. */
 export interface FraudEventsListParams {
   /**
@@ -7548,7 +7840,7 @@ export interface FraudEventsListParams {
    */
   perPage?: number;
   /** Only events of this reason. `changes` is every change to the rules and settings. */
-  reason?: "blacklist" | "vpn" | "country" | "unpaid_limit" | "dispute" | "refund" | "changes";
+  reason?: "blacklist" | "vpn" | "country" | "unpaid_limit" | "dispute" | "allowed" | "refund" | "changes";
   /** Part of an email address, an IP address or a rule's value. */
   search?: string;
   /** Only events in this period. */
@@ -7586,7 +7878,7 @@ export type FraudEventsListItem = {
 /** What export fraud events takes: `fraudEvents.export`. */
 export interface FraudEventsExportParams {
   /** Only events of this reason. `changes` is every change to the rules and settings. */
-  reason?: "blacklist" | "vpn" | "country" | "unpaid_limit" | "dispute" | "refund" | "changes";
+  reason?: "blacklist" | "vpn" | "country" | "unpaid_limit" | "dispute" | "allowed" | "refund" | "changes";
   /** Part of an email address, an IP address or a rule's value. */
   search?: string;
   /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. Not counted against the store's exports, and refused with 429 where none are left. */
@@ -12233,7 +12525,7 @@ export interface ShoplyResourcesOrders {
   /**
    * **Export orders**
    *
-   * The orders the same filters would list, as a CSV file: a row an order with every field its page shows (when it was paid, the fee, tax, balance and affiliate in it, the currency it was charged in, the billing address), or a row a product line with `rows=lines`. The first thirteen columns are always Order ID, Created, Email, Status, Payment, Currency, Subtotal, Discount, Total, Coupon, Country, Items and Products, in that order. No delivered key is in it. Every order the filters match is in the file, however many: it is sent as it is read, with no length given. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events and blacklist rules together, whoever asks: after that the answer is 429.
+   * The orders the same filters would list, as a CSV file: a row an order with every field its page shows (when it was paid, the fee, tax, balance and affiliate in it, the currency it was charged in, the billing address), or a row a product line with `rows=lines`. The first thirteen columns are always Order ID, Created, Email, Status, Payment, Currency, Subtotal, Discount, Total, Coupon, Country, Items and Products, in that order. No delivered key is in it. Every order the filters match is in the file, however many: it is sent as it is read, with no length given. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events, blacklist rules and allowlist entries together, whoever asks: after that the answer is 429.
    *
    * Needs the `orders.read` permission (Read Orders). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
    *
@@ -12447,13 +12739,35 @@ export interface ShoplyResourcesReviews {
   /**
    * **List reviews**
    *
-   * The reviews left on the store's orders, a page at a time, newest first. A buyer leaves one for a paid order; an order nobody reviewed is given five stars by itself after seven days. `meta.summary` is the whole store's average and counts, whatever the filters. A review the store flagged for removal carries `flag`: how it stands (`open`, or `kept` with the answer given) and why it was flagged. One that was removed is no longer listed.
+   * The reviews left on the store's orders, a page at a time, newest first. A buyer leaves one for a paid order; an order nobody reviewed is given five stars by itself after seven days. `meta.summary` is the whole store's average and counts, whatever the filters. A review the store flagged for removal carries `flag`: how it stands (`open`, or `kept` with the answer given) and why it was flagged. One that was removed is no longer listed. The store's reply, where it wrote one, is `reply`, and `meta.summary.replied` counts them.
    *
    * Needs the `reviews.read` permission (Read Reviews).
    *
    * @see https://docs.shoply.gg/api-reference/reviews/list-reviews
    */
   list(params?: ReviewsListParams, options?: RequestOptions): PagePromise<ReviewsListItem>;
+  /**
+   * **Reply to a review**
+   *
+   * Writes the store's reply to a review, shown under it on the store, to its buyer on their order's page, and on the dashboard. A review has one reply: sent again, it takes the place of the one there. Plain words, line breaks kept.
+   *
+   * Refused for an automatic review, which has no words to reply to (`automatic_review`). The buyer is not emailed. Answers the review as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) has it, with `reply`.
+   *
+   * Needs the `reviews.write` permission (Reply to Reviews).
+   *
+   * @see https://docs.shoply.gg/api-reference/reviews/reply-to-a-review
+   */
+  reply(reviewId: string, params: ReviewsReplyParams, options?: RequestOptions): Promise<ReviewsReplyResult>;
+  /**
+   * **Remove a reply to a review**
+   *
+   * Takes the store's reply off a review. A review with no reply is answered as it is. Answers the review as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) has it, its `reply` null.
+   *
+   * Needs the `reviews.write` permission (Reply to Reviews).
+   *
+   * @see https://docs.shoply.gg/api-reference/reviews/remove-a-reply-to-a-review
+   */
+  removeReply(reviewId: string, options?: RequestOptions): Promise<ReviewsRemoveReplyResult>;
 }
 
 export interface ShoplyResourcesCoupons {
@@ -13165,7 +13479,7 @@ export interface ShoplyResourcesCustomers {
   /**
    * **Export customers**
    *
-   * The customers the same filters would list, as a CSV file: each one's email, when they were first seen, the orders they paid for and what they spent, their first and last paid order, their store balance, their affiliate code and balance where they have one, their tags, and whether they are subscribed to the store's news and offers. Every customer the filters match is in the file, however many: it is sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events and blacklist rules together, whoever asks: after that the answer is 429.
+   * The customers the same filters would list, as a CSV file: each one's email, when they were first seen, the orders they paid for and what they spent, their first and last paid order, their store balance, their affiliate code and balance where they have one, their tags, and whether they are subscribed to the store's news and offers. Every customer the filters match is in the file, however many: it is sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events, blacklist rules and allowlist entries together, whoever asks: after that the answer is 429.
    *
    * Needs the `customers.read` permission (Read Customers). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
    *
@@ -13222,6 +13536,26 @@ export interface ShoplyResourcesCustomers {
    * @see https://docs.shoply.gg/api-reference/customers/clear-a-customer-from-the-blacklist
    */
   unblacklist(customerId: string, params?: CustomersUnblacklistParams, options?: RequestOptions): Promise<CustomersUnblacklistResult>;
+  /**
+   * **Trust a customer**
+   *
+   * Puts the customer's email on the store's allowlist, so its blacklist, blocked countries and VPN rule let them through. An entry already on their email is switched on. Answers the customer, with `trusted`.
+   *
+   * Needs the `customers.write` permission (Change Customers).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/trust-a-customer
+   */
+  trust(customerId: string, params?: CustomersTrustParams, options?: RequestOptions): Promise<CustomersTrustResult>;
+  /**
+   * **Stop trusting a customer**
+   *
+   * Takes the allowlist entries on the customer's email, and any made from their page, off. An IP address or range allowed by hand stays.
+   *
+   * Needs the `customers.write` permission (Change Customers).
+   *
+   * @see https://docs.shoply.gg/api-reference/customers/stop-trusting-a-customer
+   */
+  untrust(customerId: string, options?: RequestOptions): Promise<CustomersUntrustResult>;
   /**
    * **Set a customer's tags**
    *
@@ -13658,7 +13992,7 @@ export interface ShoplyResourcesBlacklist {
   /**
    * **Export blacklist rules**
    *
-   * The rules the same filters would list, as a CSV file, newest first: each one's type, value and note, whether it is in force, when and how it was added, the customer or order it came from, and how many checkouts it has stopped. Every rule the filters match is in the file. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events and blacklist rules together, whoever asks: after that the answer is 429.
+   * The rules the same filters would list, as a CSV file, newest first: each one's type, value and note, whether it is in force, when and how it was added, the customer or order it came from, and how many checkouts it has stopped. Every rule the filters match is in the file. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events, blacklist rules and allowlist entries together, whoever asks: after that the answer is 429.
    *
    * Needs the `fraud.read` permission (Read Fraud Protection). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
    *
@@ -13697,6 +14031,69 @@ export interface ShoplyResourcesBlacklist {
   setEnabled(ruleId: string, params: BlacklistSetEnabledParams, options?: RequestOptions): Promise<BlacklistSetEnabledResult>;
 }
 
+export interface ShoplyResourcesAllowlist {
+  /**
+   * **List allowlist entries**
+   *
+   * The store's allowlist, a page at a time: the buyers and addresses its fraud rules always let through. A buyer who matches an entry in force is let past the blacklist, the store's blocked countries and its VPN rule, even where a rule names them. The limit on unpaid orders still applies. An email entry lets through anybody who types that address at a checkout; an IP address or range is the stronger of the two. `hits` is how many checkouts an entry let through that a rule would have stopped. A store holds up to 1,000 entries.
+   *
+   * Needs the `fraud.read` permission (Read Fraud Protection).
+   *
+   * @see https://docs.shoply.gg/api-reference/allowlist/list-allowlist-entries
+   */
+  list(params?: AllowlistListParams, options?: RequestOptions): PagePromise<AllowlistListItem>;
+  /**
+   * **Create an allowlist entry**
+   *
+   * Adds an entry. Something already on the allowlist is refused, and so is a store's 1,001st (`allowlist_full`).
+   *
+   * Needs the `fraud.write` permission (Change Fraud Protection).
+   *
+   * @see https://docs.shoply.gg/api-reference/allowlist/create-an-allowlist-entry
+   */
+  create(params: AllowlistCreateParams, options?: RequestOptions): Promise<AllowlistCreateResult>;
+  /**
+   * **Export allowlist entries**
+   *
+   * The entries the same filters would list, as a CSV file, newest first: each one's type, value and note, whether it is in force, when and how it was added, and how many checkouts it has let through. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events, blacklist rules and allowlist entries together, whoever asks: after that the answer is 429.
+   *
+   * Needs the `fraud.read` permission (Read Fraud Protection). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/allowlist/export-allowlist-entries
+   */
+  export(params?: AllowlistExportParams, options?: RequestOptions): Promise<Response>;
+  /**
+   * **Update an allowlist entry**
+   *
+   * Saves the entry whole: send every field as it should be.
+   *
+   * Needs the `fraud.write` permission (Change Fraud Protection).
+   *
+   * @see https://docs.shoply.gg/api-reference/allowlist/update-an-allowlist-entry
+   */
+  update(entryId: string, params: AllowlistUpdateParams, options?: RequestOptions): Promise<AllowlistUpdateResult>;
+  /**
+   * **Delete an allowlist entry**
+   *
+   * Removes the entry.
+   *
+   * Needs the `fraud.write` permission (Change Fraud Protection).
+   *
+   * @see https://docs.shoply.gg/api-reference/allowlist/delete-an-allowlist-entry
+   */
+  delete(entryId: string, options?: RequestOptions): Promise<AllowlistDeleteResult>;
+  /**
+   * **Switch an allowlist entry on or off**
+   *
+   * Changes whether the entry is in force, without sending the rest of it.
+   *
+   * Needs the `fraud.write` permission (Change Fraud Protection).
+   *
+   * @see https://docs.shoply.gg/api-reference/allowlist/switch-an-allowlist-entry-on-or-off
+   */
+  setEnabled(entryId: string, params: AllowlistSetEnabledParams, options?: RequestOptions): Promise<AllowlistSetEnabledResult>;
+}
+
 export interface ShoplyResourcesFraudEvents {
   /**
    * **List fraud events**
@@ -13711,7 +14108,7 @@ export interface ShoplyResourcesFraudEvents {
   /**
    * **Export fraud events**
    *
-   * The events the same filters would list, as a CSV file, newest first: when each happened and how many attempts it gathered, what it was, the email, IP address, country and order, the rule it matched or the change that was made and by whom, and what a lookup of the address already knew (its provider and network, where it is, and whether it looked like a VPN, a data centre or a phone). Nothing is looked up to write the file: an address never looked up has those empty. Every event the filters match is in the file, however many: it is sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events and blacklist rules together, whoever asks: after that the answer is 429.
+   * The events the same filters would list, as a CSV file, newest first: when each happened and how many attempts it gathered, what it was, the email, IP address, country and order, the rule it matched or the change that was made and by whom, and what a lookup of the address already knew (its provider and network, where it is, and whether it looked like a VPN, a data centre or a phone). Nothing is looked up to write the file: an address never looked up has those empty. Every event the filters match is in the file, however many: it is sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, orders, customers, fraud events, blacklist rules and allowlist entries together, whoever asks: after that the answer is 429.
    *
    * Needs the `fraud.read` permission (Read Fraud Protection). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
    *
@@ -14454,6 +14851,7 @@ export interface ShoplyResources {
   team: ShoplyResourcesTeam;
   teams: ShoplyResourcesTeams;
   blacklist: ShoplyResourcesBlacklist;
+  allowlist: ShoplyResourcesAllowlist;
   fraudEvents: ShoplyResourcesFraudEvents;
   fraudSettings: ShoplyResourcesFraudSettings;
   disputes: ShoplyResourcesDisputes;
@@ -14794,6 +15192,8 @@ export type WebhookEventName =
   | "review.created"
   | "review.removed"
   | "review.flag_declined"
+  | "review.replied"
+  | "review.reply_removed"
   | "stock.low"
   | "stock.out"
   | "product.created"
@@ -14841,6 +15241,7 @@ export type WebhookEventName =
   | "team.member_moved"
   | "team.member_left"
   | "fraud.checkout_blocked"
+  | "fraud.checkout_allowed"
   | "webhook.test";
 
 /** What each event's `data` holds. */
@@ -14920,21 +15321,33 @@ export interface WebhookEventData {
   /**
    * A review was left on an order, by its buyer or by itself after seven days.
    *
-   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic` and `dateCreated`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
+   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic`, `dateCreated` and `reply` (the store's `message` and `dateReplied`, or null). `review.replied` and `review.reply_removed` add `reviewId`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
    */
   "review.created": Record<string, unknown>;
   /**
    * A review the store flagged was removed by Shoply. It is no longer anywhere, and its order can be given no other.
    *
-   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic` and `dateCreated`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
+   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic`, `dateCreated` and `reply` (the store's `message` and `dateReplied`, or null). `review.replied` and `review.reply_removed` add `reviewId`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
    */
   "review.removed": Record<string, unknown>;
   /**
    * A review the store flagged was kept by Shoply, with the reason why.
    *
-   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic` and `dateCreated`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
+   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic`, `dateCreated` and `reply` (the store's `message` and `dateReplied`, or null). `review.replied` and `review.reply_removed` add `reviewId`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
    */
   "review.flag_declined": Record<string, unknown>;
+  /**
+   * The store replied to a review, or changed its reply.
+   *
+   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic`, `dateCreated` and `reply` (the store's `message` and `dateReplied`, or null). `review.replied` and `review.reply_removed` add `reviewId`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
+   */
+  "review.replied": Record<string, unknown>;
+  /**
+   * The store took its reply to a review off.
+   *
+   * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic`, `dateCreated` and `reply` (the store's `message` and `dateReplied`, or null). `review.replied` and `review.reply_removed` add `reviewId`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
+   */
+  "review.reply_removed": Record<string, unknown>;
   /**
    * A sale left a variant that counts its stock with few, at or under the store's low stock number.
    *
@@ -15217,6 +15630,12 @@ export interface WebhookEventData {
    * `data`: The event, as [List fraud events](https://docs.shoply.gg/api-reference/fraud-protection/list-fraud-events) answers it.
    */
   "fraud.checkout_blocked": FraudEventsListItem & Record<string, unknown>;
+  /**
+   * A checkout the blacklist, a blocked country or the VPN rule would have turned away was let through by the store's allowlist. The same buyer let through again within ten minutes is not sent again.
+   *
+   * `data`: The event, as [List fraud events](https://docs.shoply.gg/api-reference/fraud-protection/list-fraud-events) answers it.
+   */
+  "fraud.checkout_allowed": FraudEventsListItem & Record<string, unknown>;
   /** When you press Send a test on an endpoint. */
   "webhook.test": Record<string, unknown>;
 }
