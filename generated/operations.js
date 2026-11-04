@@ -3,6 +3,7 @@
 /** Every route of the API: the keyed routes, then the Customer API's (`customer: true`). */
 export const OPERATIONS = [
   {"id":"key.show","name":"key.show","method":"GET","path":"/key","params":[],"query":[],"body":false,"upload":null,"file":false,"paged":false,"customer":false,"signedIn":true,"idempotent":false},
+  {"id":"key.destroy","name":"key.destroy","method":"DELETE","path":"/key","params":[],"query":[],"body":false,"upload":null,"file":false,"paged":false,"customer":false,"signedIn":true,"idempotent":true},
   {"id":"store.show","name":"store.show","method":"GET","path":"/stores/{storeId}","params":[],"query":[],"body":false,"upload":null,"file":false,"paged":false,"customer":false,"signedIn":true,"idempotent":false},
   {"id":"store.update","name":"store.update","method":"PUT","path":"/stores/{storeId}","params":[],"query":[],"body":true,"upload":null,"file":false,"paged":false,"customer":false,"signedIn":true,"idempotent":true},
   {"id":"store.setAddress","name":"store.setAddress","method":"PUT","path":"/stores/{storeId}/url","params":[],"query":[],"body":true,"upload":null,"file":false,"paged":false,"customer":false,"signedIn":true,"idempotent":true},
