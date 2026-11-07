@@ -293,6 +293,7 @@ export type StoreEmailSettingsResult = {
   emailPayoutsEnabled: boolean;
   emailCustomPaidEnabled: boolean;
   emailTicketsEnabled: boolean;
+  emailResellersEnabled: boolean;
   emailDisputeOpenedEnabled: boolean;
   emailDisputeClosedEnabled: boolean;
   testEmailEvery: {
@@ -308,6 +309,7 @@ export type StoreEmailSettingsResult = {
   discordPayoutsEnabled: boolean;
   discordCustomPaidEnabled: boolean;
   discordTicketsEnabled: boolean;
+  discordResellersEnabled: boolean;
   discordDisputesEnabled: boolean;
   discordStockThreshold: number;
   discordFailure: unknown;
@@ -7574,6 +7576,759 @@ export type TeamRemoveMemberResult = {
   keysStopped: number;
 };
 
+/** What get the reseller overview answers: `resellers.overview`. */
+export type ResellersOverviewResult = {
+  panel: {
+    enabled: boolean;
+    currency: string;
+    minTopup: number;
+  };
+  address: string;
+  figures: {
+    resellers: number;
+    paused: number;
+    sales30: number;
+    orders30: number;
+    topups30: number;
+    topupCount30: number;
+    balanceHeld: number;
+  };
+  waiting: {
+    kind: string;
+    line: string;
+    hint: string;
+    productId: string;
+  }[];
+  top: {
+    id: string;
+    name: string;
+    website: string;
+    email: string;
+    tierId: string;
+    tierName: string;
+    tierDiscount: number;
+    discount: unknown;
+    paysOff: number;
+    balance: number;
+    status: string;
+    members: number;
+    spent30: number;
+    lastOrderAt: string;
+    joinedAt: string;
+    removedAt: unknown;
+  }[];
+};
+
+/** What get the panel's settings answers: `resellers.settings`. */
+export type ResellersSettingsResult = {
+  enabled: boolean;
+  currency: string;
+  minTopup: number;
+};
+
+/** What update the panel's settings takes: `resellers.updateSettings`. */
+export interface ResellersUpdateSettingsParams {
+  /** Whether the panel is on. */
+  enabled?: boolean;
+  /** The currency its prices and balances are in, as a three-letter code. */
+  currency?: string;
+  /** The smallest top-up a reseller can make, 5.00 to 100,000.00. */
+  minTopup?: number;
+}
+
+/** What update the panel's settings answers: `resellers.updateSettings`. */
+export type ResellersUpdateSettingsResult = {
+  enabled: boolean;
+  currency: string;
+  minTopup: number;
+};
+
+/** What get the panel's domain answers: `resellers.domain`. */
+export type ResellersDomainResult = {
+  domain: unknown;
+  cnameTarget: string;
+  available: boolean;
+};
+
+/** What connect a domain to the panel takes: `resellers.connectDomain`. */
+export interface ResellersConnectDomainParams {
+  /** The domain, with no `https://` in front. */
+  hostname: string;
+}
+
+/** What connect a domain to the panel answers: `resellers.connectDomain`. */
+export type ResellersConnectDomainResult = unknown;
+
+/** What remove the panel's domain answers: `resellers.removeDomain`. */
+export type ResellersRemoveDomainResult = unknown;
+
+/** What list what the panel sells answers: `resellerProducts.list`. */
+export type ResellerProductsListResult = {
+  variantId: string;
+  productId: string;
+  productName: string;
+  variantName: string;
+  image: unknown;
+  delivery: string;
+  stock: number;
+  price: number;
+  minQty: number;
+  dailyCap: number;
+  maxDiscount: unknown;
+  enabled: boolean;
+}[];
+
+/** What sell products on the panel takes: `resellerProducts.save`. */
+export interface ResellerProductsSaveParams {
+  /** One a product option: `variantId`; `price`, its Reseller Price, above 0 and up to 1,000,000; `minQty`, the fewest bought at once, 1 to 1,000 (1 when left out); `dailyCap`, the most one reseller may buy of it in a day, or null for no cap; `maxDiscount`, the most off it in percent, or null for no limit (left out, as it was); `enabled`, whether it is on sale (true when left out). */
+  rows: Record<string, unknown>[];
+}
+
+/** What sell products on the panel answers: `resellerProducts.save`. */
+export type ResellerProductsSaveResult = {
+  variantId: string;
+  productId: string;
+  productName: string;
+  variantName: string;
+  image: unknown;
+  delivery: string;
+  stock: number;
+  price: number;
+  minQty: number;
+  dailyCap: number;
+  maxDiscount: unknown;
+  enabled: boolean;
+}[];
+
+/** What list what the panel can sell answers: `resellerProducts.pickable`. */
+export type ResellerProductsPickableResult = {
+  variantId: string;
+  productId: string;
+  productName: string;
+  variantName: string;
+  image: unknown;
+  delivery: string;
+  inPanel: boolean;
+  price: number;
+}[];
+
+/** What stop selling an option on the panel answers: `resellerProducts.remove`. */
+export type ResellerProductsRemoveResult = unknown[] | Record<string, unknown>;
+
+/** What set a product's status and labels on the panel takes: `resellerProducts.badges`. */
+export interface ResellerProductsBadgesParams {
+  /** Up to 3, each `{ label, color, kind }`: `label` 1 to 32 characters; `color` one of `blue`, `green`, `amber`, `red`, `purple` and `gray`, a `#rrggbb` colour, or empty for the plain look; `kind` `label`, or `status` for one at most. */
+  badges: Record<string, unknown>[];
+}
+
+/** What set a product's status and labels on the panel answers: `resellerProducts.badges`. */
+export type ResellerProductsBadgesResult = {
+  "f052e845-eeca-4497-aefb-c59dea7f3d27": {
+    label: string;
+    color: string;
+    kind: string;
+  }[];
+};
+
+/** What list tiers answers: `resellerTiers.list`. */
+export type ResellerTiersListResult = {
+  id: string;
+  name: string;
+  discount: number;
+  resellers: number;
+  spent30: number;
+}[];
+
+/** What create a tier takes: `resellerTiers.create`. */
+export interface ResellerTiersCreateParams {
+  /** What the tier is called, up to 40 characters. */
+  name: string;
+  /** What it takes off every Reseller Price, in percent: 0.01 to 99.99. */
+  discount: number;
+}
+
+/** What create a tier answers: `resellerTiers.create`. */
+export type ResellerTiersCreateResult = {
+  id: string;
+  name: string;
+  discount: number;
+  resellers: number;
+  spent30: number;
+};
+
+/** What update a tier takes: `resellerTiers.update`. */
+export interface ResellerTiersUpdateParams {
+  /** What the tier is called, up to 40 characters. */
+  name: string;
+  /** What it takes off every Reseller Price, in percent: 0.01 to 99.99. */
+  discount: number;
+}
+
+/** What update a tier answers: `resellerTiers.update`. */
+export type ResellerTiersUpdateResult = {
+  id: string;
+  name: string;
+  discount: number;
+  resellers: number;
+  spent30: number;
+};
+
+/** What delete a tier answers: `resellerTiers.delete`. */
+export type ResellerTiersDeleteResult = unknown[] | Record<string, unknown>;
+
+/** What list invite links answers: `resellerInvites.list`. */
+export type ResellerInvitesListResult = {
+  id: string;
+  name: string;
+  code: string;
+  tierId: string;
+  tierName: string;
+  maxUses: number;
+  uses: number;
+  endsAt: string;
+  enabled: boolean;
+  live: boolean;
+}[];
+
+/** What create an invite link takes: `resellerInvites.create`. */
+export interface ResellerInvitesCreateParams {
+  /** What the link is called on the dashboard, up to 60 characters. Resellers never see it. Needed to make one. */
+  name?: string;
+  /** The tier whoever joins through it starts in. Empty or left out, none: they pay the Reseller Price. */
+  tierId?: string;
+  /** How many may join through it, 1 to 100,000. Empty or left out, no limit. */
+  maxUses?: number;
+  /** When it stops working, as a date and time. Empty or left out, never. */
+  endsAt?: string;
+  /**
+   * Whether it works.
+   *
+   * Left out, it is true.
+   */
+  enabled?: boolean;
+}
+
+/** What create an invite link answers: `resellerInvites.create`. */
+export type ResellerInvitesCreateResult = {
+  id: string;
+  name: string;
+  code: string;
+  tierId: string;
+  tierName: string;
+  maxUses: number;
+  uses: number;
+  endsAt: unknown;
+  enabled: boolean;
+  live: boolean;
+};
+
+/** What update an invite link takes: `resellerInvites.update`. */
+export interface ResellerInvitesUpdateParams {
+  /** What the link is called on the dashboard, up to 60 characters. Resellers never see it. Needed to make one. */
+  name?: string;
+  /** The tier whoever joins through it starts in. Empty or left out, none: they pay the Reseller Price. */
+  tierId?: string;
+  /** How many may join through it, 1 to 100,000. Empty or left out, no limit. */
+  maxUses?: number;
+  /** When it stops working, as a date and time. Empty or left out, never. */
+  endsAt?: string;
+  /**
+   * Whether it works.
+   *
+   * Left out, it is true.
+   */
+  enabled?: boolean;
+}
+
+/** What update an invite link answers: `resellerInvites.update`. */
+export type ResellerInvitesUpdateResult = {
+  id: string;
+  name: string;
+  code: string;
+  tierId: string;
+  tierName: string;
+  maxUses: number;
+  uses: number;
+  endsAt: string;
+  enabled: boolean;
+  live: boolean;
+};
+
+/** What delete an invite link answers: `resellerInvites.delete`. */
+export type ResellerInvitesDeleteResult = unknown[] | Record<string, unknown>;
+
+/** What list announcements answers: `resellerAnnouncements.list`. */
+export type ResellerAnnouncementsListResult = {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  closes: number;
+}[];
+
+/** What post an announcement takes: `resellerAnnouncements.create`. */
+export interface ResellerAnnouncementsCreateParams {
+  /** Its title, up to 100 characters. */
+  title: string;
+  /** What it says, up to 1,000 characters. */
+  body: string;
+  /**
+   * Whether it is shown first, before the newer ones.
+   *
+   * Left out, it is false.
+   */
+  pinned?: boolean;
+}
+
+/** What post an announcement answers: `resellerAnnouncements.create`. */
+export type ResellerAnnouncementsCreateResult = {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  closes: number;
+};
+
+/** What update an announcement takes: `resellerAnnouncements.update`. */
+export interface ResellerAnnouncementsUpdateParams {
+  /** Its title, up to 100 characters. */
+  title: string;
+  /** What it says, up to 1,000 characters. */
+  body: string;
+  /**
+   * Whether it is shown first, before the newer ones.
+   *
+   * Left out, it is false.
+   */
+  pinned?: boolean;
+}
+
+/** What update an announcement answers: `resellerAnnouncements.update`. */
+export type ResellerAnnouncementsUpdateResult = {
+  id: string;
+  title: string;
+  body: string;
+  pinned: boolean;
+  createdAt: string;
+  updatedAt: string;
+  closes: number;
+};
+
+/** What delete an announcement answers: `resellerAnnouncements.delete`. */
+export type ResellerAnnouncementsDeleteResult = unknown[] | Record<string, unknown>;
+
+/** What list reseller orders takes: `resellerOrders.list`. */
+export interface ResellerOrdersListParams {
+  /** Only what matches this text: an order's ID, a reseller's website, or who bought or paid. */
+  q?: string;
+  /** Only one reseller's, by their ID. */
+  reseller?: string;
+  /** Only those bought one way. */
+  via?: "panel" | "api" | "url";
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+}
+
+/** A row of what list reseller orders lists: `resellerOrders.list`. */
+export type ResellerOrdersListItem = {
+  id: string;
+  resellerId: string;
+  reseller: string;
+  resellerRemoved: boolean;
+  boughtBy: string;
+  productName: string;
+  variantName: string;
+  quantity: number;
+  total: number;
+  currency: string;
+  status: string;
+  via: string;
+  createdAt: string;
+};
+
+/** What export reseller orders takes: `resellerOrders.export`. */
+export interface ResellerOrdersExportParams {
+  /** Only what matches this text: an order's ID, a reseller's website, or who bought or paid. */
+  q?: string;
+  /** Only one reseller's, by their ID. */
+  reseller?: string;
+  /** Only those bought one way. */
+  via?: "panel" | "api" | "url";
+  /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. */
+  check?: "1";
+}
+
+/** What list top-ups takes: `resellerTopUps.list`. */
+export interface ResellerTopUpsListParams {
+  /** Only what matches this text: an order's ID, a reseller's website, or who bought or paid. */
+  q?: string;
+  /** Only one reseller's, by their ID. */
+  reseller?: string;
+  /** Only those in one state. */
+  status?: "paid" | "waiting" | "checking" | "expired" | "taken_back";
+  /**
+   * Which page of the list. The first is 1.
+   *
+   * Left out, it is 1.
+   */
+  page?: number;
+}
+
+/** A row of what list top-ups lists: `resellerTopUps.list`. */
+export type ResellerTopUpsListItem = {
+  id: string;
+  resellerId: string;
+  reseller: string;
+  resellerRemoved: boolean;
+  paidBy: string;
+  amount: number;
+  currency: string;
+  state: string;
+  method: string;
+  createdAt: string;
+  paidAt: unknown;
+};
+
+/** What export top-ups takes: `resellerTopUps.export`. */
+export interface ResellerTopUpsExportParams {
+  /** Only what matches this text: an order's ID, a reseller's website, or who bought or paid. */
+  q?: string;
+  /** Only one reseller's, by their ID. */
+  reseller?: string;
+  /** Only those in one state. */
+  status?: "paid" | "waiting" | "checking" | "expired" | "taken_back";
+  /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. */
+  check?: "1";
+}
+
+/** What get a top-up's custom payment answers: `resellerTopUps.payment`. */
+export type ResellerTopUpsPaymentResult = {
+  method: string;
+  kind: string;
+  status: string;
+  asksProof: boolean;
+  requiresPicture: boolean;
+  amount: number;
+  currency: string;
+  proof: {
+    reference: string;
+    picture: boolean;
+    at: string;
+  };
+};
+
+/** What approve a top-up's custom payment answers: `resellerTopUps.approve`. */
+export type ResellerTopUpsApproveResult = {
+  id: string;
+  state: string;
+};
+
+/** What reject a top-up's custom payment answers: `resellerTopUps.reject`. */
+export type ResellerTopUpsRejectResult = {
+  id: string;
+  state: string;
+};
+
+/** What mark a top-up as paid answers: `resellerTopUps.markPaid`. */
+export type ResellerTopUpsMarkPaidResult = {
+  id: string;
+  state: string;
+};
+
+/** What list resellers answers: `resellers.list`. */
+export type ResellersListResult = {
+  id: string;
+  name: string;
+  website: string;
+  email: string;
+  tierId: unknown;
+  tierName: unknown;
+  tierDiscount: unknown;
+  discount: unknown;
+  paysOff: number;
+  balance: number;
+  status: string;
+  members: number;
+  spent30: number;
+  lastOrderAt: unknown;
+  joinedAt: string;
+  removedAt: unknown;
+}[];
+
+/** What get a reseller answers: `resellers.get`. */
+export type ResellersGetResult = {
+  id: string;
+  name: string;
+  website: string;
+  email: string;
+  tierId: string;
+  tierName: string;
+  tierDiscount: number;
+  discount: unknown;
+  paysOff: number;
+  balance: number;
+  status: string;
+  members: number;
+  spent30: number;
+  lastOrderAt: string;
+  joinedAt: string;
+  removedAt: unknown;
+  inviteName: unknown;
+  team: {
+    id: string;
+    email: string;
+    owner: boolean;
+    permissions: string[];
+    access: {
+      buy: boolean;
+      topup: boolean;
+      keys: boolean;
+      api: boolean;
+    };
+    twoFactor: boolean;
+    verified: boolean;
+    lastSeenAt: unknown;
+    joinedAt: string;
+  }[];
+  catalogue: Array<{
+    id: string;
+    label: string;
+    permissions: Array<{
+      key: string;
+      label: string;
+      about: string;
+      needs: unknown[] | Record<string, unknown>;
+    }>;
+  }>;
+};
+
+/** What update a reseller takes: `resellers.update`. */
+export interface ResellersUpdateParams {
+  /** Their tier. Empty, none. */
+  tierId?: string;
+  /** Their own discount off every Reseller Price, in percent, 0.01 to 99.99, in place of their tier's. Null or empty, none. */
+  discount?: number;
+  /** Whether they can buy and top up. */
+  status?: "active" | "paused";
+}
+
+/** What update a reseller answers: `resellers.update`. */
+export type ResellersUpdateResult = {
+  id: string;
+  name: string;
+  website: string;
+  email: string;
+  tierId: string;
+  tierName: string;
+  tierDiscount: number;
+  discount: unknown;
+  paysOff: number;
+  balance: number;
+  status: string;
+  members: number;
+  spent30: number;
+  lastOrderAt: unknown;
+  joinedAt: string;
+  removedAt: unknown;
+  inviteName: unknown;
+  team: {
+    id: string;
+    email: string;
+    owner: boolean;
+    permissions: string[];
+    access: {
+      buy: boolean;
+      topup: boolean;
+      keys: boolean;
+      api: boolean;
+    };
+    twoFactor: boolean;
+    verified: boolean;
+    lastSeenAt: unknown;
+    joinedAt: string;
+  }[];
+  catalogue: Array<{
+    id: string;
+    label: string;
+    permissions: Array<{
+      key: string;
+      label: string;
+      about: string;
+      needs: unknown[] | Record<string, unknown>;
+    }>;
+  }>;
+};
+
+/** What remove a reseller answers: `resellers.delete`. */
+export type ResellersDeleteResult = {
+  removed: boolean;
+};
+
+/** What change a reseller's balance takes: `resellers.setBalance`. */
+export interface ResellersSetBalanceParams {
+  /** Add to it, take from it, or set it to exactly this. */
+  mode: "add" | "subtract" | "set";
+  /** How much, in the panel's currency, with at most 2 decimals. */
+  amount: number;
+  /** Why, up to 500 characters. The reseller reads it. */
+  note?: string;
+}
+
+/** What change a reseller's balance answers: `resellers.setBalance`. */
+export type ResellersSetBalanceResult = {
+  id: string;
+  name: string;
+  website: string;
+  email: string;
+  tierId: string;
+  tierName: string;
+  tierDiscount: number;
+  discount: unknown;
+  paysOff: number;
+  balance: number;
+  status: string;
+  members: number;
+  spent30: number;
+  lastOrderAt: unknown;
+  joinedAt: string;
+  removedAt: unknown;
+  inviteName: unknown;
+  team: {
+    id: string;
+    email: string;
+    owner: boolean;
+    permissions: string[];
+    access: {
+      buy: boolean;
+      topup: boolean;
+      keys: boolean;
+      api: boolean;
+    };
+    twoFactor: boolean;
+    verified: boolean;
+    lastSeenAt: unknown;
+    joinedAt: string;
+  }[];
+  catalogue: Array<{
+    id: string;
+    label: string;
+    permissions: Array<{
+      key: string;
+      label: string;
+      about: string;
+      needs: unknown[] | Record<string, unknown>;
+    }>;
+  }>;
+};
+
+/** What change what a reseller's member may do takes: `resellers.updateMember`. */
+export interface ResellersUpdateMemberParams {
+  /** What they may do, by name: `products.view`, `products.buy`, `orders.view`, `orders.keys`, `balance.view`, `balance.topup`, `api.keys`, `api.urls`, `team.view`, `team.manage`, `alerts.manage`. */
+  permissions: string[];
+}
+
+/** What change what a reseller's member may do answers: `resellers.updateMember`. */
+export type ResellersUpdateMemberResult = {
+  id: string;
+  name: string;
+  website: string;
+  email: string;
+  tierId: string;
+  tierName: string;
+  tierDiscount: number;
+  discount: unknown;
+  paysOff: number;
+  balance: number;
+  status: string;
+  members: number;
+  spent30: number;
+  lastOrderAt: unknown;
+  joinedAt: string;
+  removedAt: unknown;
+  inviteName: unknown;
+  team: {
+    id: string;
+    email: string;
+    owner: boolean;
+    permissions: string[];
+    access: {
+      buy: boolean;
+      topup: boolean;
+      keys: boolean;
+      api: boolean;
+    };
+    twoFactor: boolean;
+    verified: boolean;
+    lastSeenAt: unknown;
+    joinedAt: string;
+  }[];
+  catalogue: Array<{
+    id: string;
+    label: string;
+    permissions: Array<{
+      key: string;
+      label: string;
+      about: string;
+      needs: unknown[] | Record<string, unknown>;
+    }>;
+  }>;
+};
+
+/** What remove a reseller's member answers: `resellers.removeMember`. */
+export type ResellersRemoveMemberResult = {
+  id: string;
+  name: string;
+  website: string;
+  email: string;
+  tierId: string;
+  tierName: string;
+  tierDiscount: number;
+  discount: unknown;
+  paysOff: number;
+  balance: number;
+  status: string;
+  members: number;
+  spent30: number;
+  lastOrderAt: string;
+  joinedAt: string;
+  removedAt: unknown;
+  inviteName: unknown;
+  team: {
+    id: string;
+    email: string;
+    owner: boolean;
+    permissions: string[];
+    access: {
+      buy: boolean;
+      topup: boolean;
+      keys: boolean;
+      api: boolean;
+    };
+    twoFactor: boolean;
+    verified: boolean;
+    lastSeenAt: unknown;
+    joinedAt: string;
+  }[];
+  catalogue: Array<{
+    id: string;
+    label: string;
+    permissions: Array<{
+      key: string;
+      label: string;
+      about: string;
+      needs: unknown[] | Record<string, unknown>;
+    }>;
+  }>;
+};
+
 /** What list blacklist rules takes: `blacklist.list`. */
 export interface BlacklistListParams {
   /**
@@ -14013,6 +14768,417 @@ export interface ShoplyResourcesTeams {
   delete(teamId: string, options?: RequestOptions): Promise<TeamsDeleteResult>;
 }
 
+export interface ShoplyResourcesResellers {
+  /**
+   * **Get the reseller overview**
+   *
+   * What the workspace's Overview shows: the panel (`panel`: whether it is on, its currency and smallest top-up), its address, the last 30 days' figures (`figures`: sales, orders and top-ups, and `balanceHeld`, every reseller's balance added up), what waits on the store (`waiting`, most pressing first: the panel off, nothing for sale, no invite link on, a product running out of keys) and the five resellers who spent most in 30 days (`top`). None of it is in the store's own figures: a reseller's purchases and top-ups are never its orders or revenue.
+   *
+   * Needs the `resellers.read` permission (Read Resellers). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-the-reseller-overview
+   */
+  overview(options?: RequestOptions): Promise<ResellersOverviewResult>;
+  /**
+   * **Get the panel's settings**
+   *
+   * Whether the panel is on, its currency and its smallest top-up. `meta` has its addresses (`address`, its own domain once it is live; `shoplyAddress`, always its store's myshoply.gg one; `joinAddress`, what an invite link starts with), the invite links and tiers, `balanceHeld`, the bounds a smallest top-up is held to, and the currencies it can be in.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-the-panels-settings
+   */
+  settings(options?: RequestOptions): Promise<ResellersSettingsResult>;
+  /**
+   * **Update the panel's settings**
+   *
+   * Only what is sent changes. Switched off, nobody can join, sign in or buy, and every balance and order is kept. The currency changes only while every reseller's balance is zero.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/update-the-panels-settings
+   */
+  updateSettings(params?: ResellersUpdateSettingsParams, options?: RequestOptions): Promise<ResellersUpdateSettingsResult>;
+  /**
+   * **Get the panel's domain**
+   *
+   * The panel's own domain, if it has one, with where it stands (`status`, and `checks`: whether it points here, whether its TXT record has proved it the store's, and whether its certificate is issued), and `cnameTarget`. The panel has a domain of its own as the store does: point a CNAME record for it at `cnameTarget`, and it goes live once that is seen and its certificate is issued. Its store's myshoply.gg address answers too, always.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-the-panels-domain
+   */
+  domain(options?: RequestOptions): Promise<ResellersDomainResult>;
+  /**
+   * **Connect a domain to the panel**
+   *
+   * The panel has a domain of its own as the store does: point a CNAME record for it at `cnameTarget`, and it goes live once that is seen and its certificate is issued. Its store's myshoply.gg address answers too, always. A panel has one domain: remove it to connect another. Only a key the store's owner made can do this.
+   *
+   * Needs the `resellers.write` permission (Change Resellers). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/connect-a-domain-to-the-panel
+   */
+  connectDomain(params: ResellersConnectDomainParams, options?: RequestOptions): Promise<ResellersConnectDomainResult>;
+  /**
+   * **Remove the panel's domain**
+   *
+   * Disconnects the panel's own domain. It goes on answering at its store's myshoply.gg address. Only a key the store's owner made can do this.
+   *
+   * Needs the `resellers.write` permission (Change Resellers). Only a key the store's owner made, or an app the owner connected, can call it: one made by somebody on the store's team is refused (`owner_only`).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/remove-the-panels-domain
+   */
+  removeDomain(options?: RequestOptions): Promise<ResellersRemoveDomainResult>;
+  /**
+   * **List resellers**
+   *
+   * Every reseller of the store, the newest first, but those removed: a business, by the website it joined with (`name`), with its owner's email address, its tier and its own discount (`paysOff` is what it pays off every Reseller Price), its `balance`, whether it is `active` or `paused`, how many are on its team, and what it spent in 30 days. `meta.limit` is how many resellers the store's plan holds, so the list is not paged.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-resellers
+   */
+  list(options?: RequestOptions): Promise<ResellersListResult>;
+  /**
+   * **Get a reseller**
+   *
+   * One reseller as the list has them, with the invite link they joined by (`inviteName`) and their `team`: each member's email address, whether they are its owner, and what they may do (`permissions`, from `catalogue`). `meta.history` is their balance line by line, the newest 50 first. A reseller the store removed is still answered, with `removedAt` and no team.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-a-reseller
+   */
+  get(resellerId: string, options?: RequestOptions): Promise<ResellersGetResult>;
+  /**
+   * **Update a reseller**
+   *
+   * Only what is sent changes. A paused reseller signs in and reads their orders, and cannot buy or top up. Refused with `reseller_removed` for one the store removed.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/update-a-reseller
+   */
+  update(resellerId: string, params?: ResellersUpdateParams, options?: RequestOptions): Promise<ResellersUpdateResult>;
+  /**
+   * **Remove a reseller**
+   *
+   * Removes a reseller from the store: their team can no longer sign in, and their API keys, delivery URLs and team invites are deleted. Their records are kept: their orders and top-ups stay in List reseller orders and List top-ups, and Get a reseller still answers them, with `removedAt` and their balance history. Refused with `reseller_has_balance` while they hold a balance: set it to zero first. A removed reseller is in no list of resellers, and does not count against the store's plan.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/remove-a-reseller
+   */
+  delete(resellerId: string, options?: RequestOptions): Promise<ResellersDeleteResult>;
+  /**
+   * **Change a reseller's balance**
+   *
+   * Adds to, takes from or sets a reseller's balance, which never goes below zero or past 1,000,000. Shoply moves no money: this is for what you settled with them yourself. The note is what they read in their own history. A removed reseller's balance does not move. Send an `Idempotency-Key` with this request.
+   *
+   * Needs the `resellers.balance` permission (Change Reseller Balances).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/change-a-resellers-balance
+   */
+  setBalance(resellerId: string, params: ResellersSetBalanceParams, options?: RequestOptions): Promise<ResellersSetBalanceResult>;
+  /**
+   * **Change what a reseller's member may do**
+   *
+   * Saves a member's permissions whole. What a permission leans on is added with it. The team's owner can always do everything, so theirs is refused.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/change-what-a-resellers-member-may-do
+   */
+  updateMember(resellerId: string, memberId: string, params: ResellersUpdateMemberParams, options?: RequestOptions): Promise<ResellersUpdateMemberResult>;
+  /**
+   * **Remove a reseller's member**
+   *
+   * Takes one person off a reseller's team. Their sessions and the API keys they made stop working. The team's owner cannot be removed.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/remove-a-resellers-member
+   */
+  removeMember(resellerId: string, memberId: string, options?: RequestOptions): Promise<ResellersRemoveMemberResult>;
+}
+
+export interface ShoplyResourcesResellerProducts {
+  /**
+   * **List what the panel sells**
+   *
+   * Every option of the store's products the panel sells, a row an option: its Reseller Price (`price`), the fewest bought at once (`minQty`), the most one reseller may buy of it in a day (`dailyCap`), the most a tier or a reseller's own discount may take off it (`maxDiscount`), whether it is on sale (`enabled`) and its stock. `meta.badges` is each product's status and labels on the panel, by its ID, and `meta.tiers` the tiers.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-what-the-panel-sells
+   */
+  list(options?: RequestOptions): Promise<ResellerProductsListResult>;
+  /**
+   * **Sell products on the panel**
+   *
+   * Puts options on the panel or changes them, up to 1,000 at once, all or none: one row refused leaves every row as it was, and the errors are keyed by the option and the field (`<variantId>.price`). An option not sent is left as it is. Answers every row the panel sells.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/sell-products-on-the-panel
+   */
+  save(params: ResellerProductsSaveParams, options?: RequestOptions): Promise<ResellerProductsSaveResult>;
+  /**
+   * **List what the panel can sell**
+   *
+   * The store's products with the options a panel can sell: those delivered as license keys or by dynamic delivery. A file is never sold to resellers. `meta.categories` is the store's categories they are in.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-what-the-panel-can-sell
+   */
+  pickable(options?: RequestOptions): Promise<ResellerProductsPickableResult>;
+  /**
+   * **Stop selling an option on the panel**
+   *
+   * Takes one option off the panel. What resellers bought of it stays on record. Answers every row the panel still sells.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/stop-selling-an-option-on-the-panel
+   */
+  remove(variantId: string, options?: RequestOptions): Promise<ResellerProductsRemoveResult>;
+  /**
+   * **Set a product's status and labels on the panel**
+   *
+   * What resellers read beside a product on the panel, never the product's own badges: one status and labels, as a product's badges are written. An empty list takes them off. 404 for a product the panel does not sell. Answers every product's, by its ID.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/set-a-products-status-and-labels-on-the-panel
+   */
+  badges(productId: string, params: ResellerProductsBadgesParams, options?: RequestOptions): Promise<ResellerProductsBadgesResult>;
+}
+
+export interface ShoplyResourcesResellerTiers {
+  /**
+   * **List tiers**
+   *
+   * The panel's tiers, each a discount off every Reseller Price, with how many resellers are in it. A reseller pays their own discount where they have one, else their tier's. `meta.limit` is how many tiers the store's plan holds.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-tiers
+   */
+  list(options?: RequestOptions): Promise<ResellerTiersListResult>;
+  /**
+   * **Create a tier**
+   *
+   * Adds a tier, up to as many as the store's plan holds. A name is used once a panel.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/create-a-tier
+   */
+  create(params: ResellerTiersCreateParams, options?: RequestOptions): Promise<ResellerTiersCreateResult>;
+  /**
+   * **Update a tier**
+   *
+   * Saves the tier whole: its name and discount. Its resellers pay the new discount from their next purchase.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/update-a-tier
+   */
+  update(tierId: string, params: ResellerTiersUpdateParams, options?: RequestOptions): Promise<ResellerTiersUpdateResult>;
+  /**
+   * **Delete a tier**
+   *
+   * Its resellers and invite links are left in no tier, which is the Reseller Price. Answers the tiers that are left.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/delete-a-tier
+   */
+  delete(tierId: string, options?: RequestOptions): Promise<ResellerTiersDeleteResult>;
+}
+
+export interface ShoplyResourcesResellerInvites {
+  /**
+   * **List invite links**
+   *
+   * The links a business joins the panel by, the newest first, each with its `code` (the link is `meta.joinAddress` followed by it), the tier it starts them in, how many have joined through it (`uses`) and how many may, when it ends, whether it is switched on (`enabled`) and whether it can still be used (`live`). `meta.limits` says how many may be live at once on the store's plan, and how many are.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-invite-links
+   */
+  list(options?: RequestOptions): Promise<ResellerInvitesListResult>;
+  /**
+   * **Create an invite link**
+   *
+   * Makes a link a business joins the panel by, with their website, an email address and a password, and no approval. Refused with `reseller_invite_limit` where the store's plan has as many on as it holds.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/create-an-invite-link
+   */
+  create(params?: ResellerInvitesCreateParams, options?: RequestOptions): Promise<ResellerInvitesCreateResult>;
+  /**
+   * **Update an invite link**
+   *
+   * Only what is sent changes: send `enabled: false` to switch a link off. Its address stays the same.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/update-an-invite-link
+   */
+  update(inviteId: string, params?: ResellerInvitesUpdateParams, options?: RequestOptions): Promise<ResellerInvitesUpdateResult>;
+  /**
+   * **Delete an invite link**
+   *
+   * Whoever joined through it stays a reseller; only the link goes. Answers the links that are left.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/delete-an-invite-link
+   */
+  delete(inviteId: string, options?: RequestOptions): Promise<ResellerInvitesDeleteResult>;
+}
+
+export interface ShoplyResourcesResellerAnnouncements {
+  /**
+   * **List announcements**
+   *
+   * What the store tells its resellers, in a bar on every page of the panel, pinned ones first, then the newest. `meta.resellers` is how many people can read them (everybody on every reseller's team), and `meta.bounds` the lengths and how many a panel keeps.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-announcements
+   */
+  list(options?: RequestOptions): Promise<ResellerAnnouncementsListResult>;
+  /**
+   * **Post an announcement**
+   *
+   * Every reseller sees it on the panel from their next page. Nobody is emailed. A panel keeps up to 100: past that, a new one is refused with `announcement_limit`.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/post-an-announcement
+   */
+  create(params: ResellerAnnouncementsCreateParams, options?: RequestOptions): Promise<ResellerAnnouncementsCreateResult>;
+  /**
+   * **Update an announcement**
+   *
+   * Saves it whole: its title, what it says and whether it is pinned.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/update-an-announcement
+   */
+  update(announcementId: string, params: ResellerAnnouncementsUpdateParams, options?: RequestOptions): Promise<ResellerAnnouncementsUpdateResult>;
+  /**
+   * **Delete an announcement**
+   *
+   * Takes it off the panel. Answers the announcements that are left.
+   *
+   * Needs the `resellers.write` permission (Change Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/delete-an-announcement
+   */
+  delete(announcementId: string, options?: RequestOptions): Promise<ResellerAnnouncementsDeleteResult>;
+}
+
+export interface ShoplyResourcesResellerOrders {
+  /**
+   * **List reseller orders**
+   *
+   * What resellers bought, newest first, 25 a page: who (`reseller`, and `boughtBy`, the member of their team), what and how many, the `total` taken off their balance, and how it was bought (`via`: `panel`, `api` for their own API, or `url` for a delivery URL). These are never the store's orders: List orders does not have them, and no order webhook is sent for them. `meta.counts` is how many each way, and `meta.figures` the last 30 days'.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-reseller-orders
+   */
+  list(params?: ResellerOrdersListParams, options?: RequestOptions): PagePromise<ResellerOrdersListItem>;
+  /**
+   * **Export reseller orders**
+   *
+   * The orders the same filters would list, as a CSV file: Order ID, Reseller, Bought By, Product, Variant, Quantity, Total, Currency, Bought With and Date. No delivered key is in it. Every row the filters match is in the file, up to 50,000, sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, whatever they are of, whoever asks: after that the answer is 429.
+   *
+   * Needs the `resellers.read` permission (Read Resellers). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/export-reseller-orders
+   */
+  export(params?: ResellerOrdersExportParams, options?: RequestOptions): Promise<Response>;
+}
+
+export interface ShoplyResourcesResellerTopUps {
+  /**
+   * **List top-ups**
+   *
+   * Money resellers put on their balance, paid on the store's checkout with its own payment methods, newest first, 25 a page. `state` is `paid`, `waiting` (for the reseller to pay), `checking` (paid with one of the store's custom methods, and waiting for the store), `expired` (not paid in the store's unpaid order time) or `taken_back` (its payment was taken back by the bank, and came off the balance). A top-up's `id` is the order it is paid with. `meta.counts` is how many in each state, and `meta.figures` the last 30 days'.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/list-top-ups
+   */
+  list(params?: ResellerTopUpsListParams, options?: RequestOptions): PagePromise<ResellerTopUpsListItem>;
+  /**
+   * **Export top-ups**
+   *
+   * The top-ups the same filters would list, as a CSV file: Top-up ID, Reseller, Paid By, Amount, Currency, Paid With, Status, Opened and Paid. Every row the filters match is in the file, up to 50,000, sent as it is read. Add `check=1` for `{ rows }`, how many it would have, which is not counted. A store exports at most 30 files every 10 minutes, whatever they are of, whoever asks: after that the answer is 429.
+   *
+   * Needs the `resellers.read` permission (Read Resellers). It is one of the heavier reads, and is counted against a smaller budget of its own: 60 a minute for each key.
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/export-top-ups
+   */
+  export(params?: ResellerTopUpsExportParams, options?: RequestOptions): Promise<Response>;
+  /**
+   * **Get a top-up's custom payment**
+   *
+   * A top-up paid with one of the store's custom methods: the method, what the reseller sent with it (a reference, a picture) and where it stands (`status` `review` while it waits for the store). Null for a top-up paid any other way. `meta.gateway` is the method.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-a-top-ups-custom-payment
+   */
+  payment(topUpId: string, options?: RequestOptions): Promise<ResellerTopUpsPaymentResult>;
+  /**
+   * **Get a top-up's proof of payment**
+   *
+   * The picture a reseller sent with a custom payment, as the file itself: a PNG, JPEG or WebP. 404 where the top-up has none.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-a-top-ups-proof-of-payment
+   */
+  proof(topUpId: string, options?: RequestOptions): Promise<Response>;
+  /**
+   * **Approve a top-up's custom payment**
+   *
+   * Says the money a reseller sent with one of the store's custom methods arrived, and puts the top-up on their balance. Shoply never sees that money: check it reached you first. Refused with `payment_not_approved` where there is nothing to approve. Send an `Idempotency-Key` with this request.
+   *
+   * Needs the `resellers.balance` permission (Change Reseller Balances).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/approve-a-top-ups-custom-payment
+   */
+  approve(topUpId: string, options?: RequestOptions): Promise<ResellerTopUpsApproveResult>;
+  /**
+   * **Reject a top-up's custom payment**
+   *
+   * Cancels the top-up, and nothing goes on the balance. The reseller is not emailed. Refused with `payment_not_rejected` where there is nothing to reject.
+   *
+   * Needs the `resellers.balance` permission (Change Reseller Balances).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/reject-a-top-ups-custom-payment
+   */
+  reject(topUpId: string, options?: RequestOptions): Promise<ResellerTopUpsRejectResult>;
+  /**
+   * **Mark a top-up as paid**
+   *
+   * A top-up waiting for payment or expired goes onto the reseller's balance as if its payment had arrived, for money that reached you another way. It cannot be undone. Refused with `top_up_not_payable` for one paid already or taken back, and for one whose custom payment waits for you: approve or reject that instead. Send an `Idempotency-Key` with this request.
+   *
+   * Needs the `resellers.balance` permission (Change Reseller Balances).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/mark-a-top-up-as-paid
+   */
+  markPaid(topUpId: string, options?: RequestOptions): Promise<ResellerTopUpsMarkPaidResult>;
+}
+
 export interface ShoplyResourcesBlacklist {
   /**
    * **List blacklist rules**
@@ -14895,6 +16061,13 @@ export interface ShoplyResources {
   tickets: ShoplyResourcesTickets;
   team: ShoplyResourcesTeam;
   teams: ShoplyResourcesTeams;
+  resellers: ShoplyResourcesResellers;
+  resellerProducts: ShoplyResourcesResellerProducts;
+  resellerTiers: ShoplyResourcesResellerTiers;
+  resellerInvites: ShoplyResourcesResellerInvites;
+  resellerAnnouncements: ShoplyResourcesResellerAnnouncements;
+  resellerOrders: ShoplyResourcesResellerOrders;
+  resellerTopUps: ShoplyResourcesResellerTopUps;
   blacklist: ShoplyResourcesBlacklist;
   allowlist: ShoplyResourcesAllowlist;
   fraudEvents: ShoplyResourcesFraudEvents;
@@ -15285,6 +16458,13 @@ export type WebhookEventName =
   | "team.member_joined"
   | "team.member_moved"
   | "team.member_left"
+  | "reseller.joined"
+  | "reseller.updated"
+  | "reseller.removed"
+  | "reseller.balance_changed"
+  | "reseller.top_up_paid"
+  | "reseller.top_up_submitted"
+  | "reseller.order_completed"
   | "fraud.checkout_blocked"
   | "fraud.checkout_allowed"
   | "webhook.test";
@@ -15669,6 +16849,48 @@ export interface WebhookEventData {
    * `data`: For `team.created` and `team.updated` the team as [Get the team](https://docs.shoply.gg/api-reference/teams/get-the-team) answers it in `teams`, without its `people`; `team.deleted` has its `id` and `name`. The three `team.member_` events have the person as Get the team answers them on a team (`id`, `teamId`, `name`, `email`, `joinedAt`), with `team`, the team they are on now or were on, by `id` and `name`; `team.member_moved` adds `from`, the team they left, and `team.member_left` adds `reason` (`removed` or `left`) and `keysStopped`.
    */
   "team.member_left": Record<string, unknown>;
+  /**
+   * A business joined the store's reseller panel through one of its invite links.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.joined": Record<string, unknown>;
+  /**
+   * A reseller was paused or made active again, or given another tier or discount, by the store or by Shoply; or paused because a top-up's payment was taken back.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.updated": Record<string, unknown>;
+  /**
+   * The store removed a reseller: their team can no longer sign in. Their orders, top-ups and balance history are kept.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.removed": Record<string, unknown>;
+  /**
+   * A reseller's balance changed: a top-up paid, a purchase, a change by hand, or a top-up's payment taken back.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.balance_changed": Record<string, unknown>;
+  /**
+   * A reseller's top-up was paid, or marked paid by the store, and is on their balance.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.top_up_paid": Record<string, unknown>;
+  /**
+   * A reseller says they paid a top-up with one of the store's custom payment methods, and it waits for the store to approve or reject it. Approved, it is `reseller.top_up_paid`.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.top_up_submitted": Record<string, unknown>;
+  /**
+   * A reseller bought from the panel, in the panel itself, with their API or by a delivery URL, paid from their balance.
+   *
+   * `data`: For `reseller.joined`, `reseller.updated` and `reseller.removed`, the reseller, as [List resellers](https://docs.shoply.gg/api-reference/resellers/list-resellers) answers one. `reseller.balance_changed` adds `change`: its `kind` (`topup`, `order`, `manual` or `chargeback`), `amount`, `balanceAfter`, `orderId`, `note`, `actor` and `createdAt`. The two `reseller.top_up_` events have the top-up, as [List top-ups](https://docs.shoply.gg/api-reference/resellers/list-top-ups) answers it, and `reseller.order_completed` the order, as [List reseller orders](https://docs.shoply.gg/api-reference/resellers/list-reseller-orders) answers it.
+   */
+  "reseller.order_completed": Record<string, unknown>;
   /**
    * A checkout was turned away by the blacklist, a blocked country, the VPN rule or the limit on unpaid orders. The same buyer turned away again for the same reason within ten minutes is not sent again.
    *
