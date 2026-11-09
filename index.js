@@ -14,7 +14,7 @@
 
 import { EVENTS, OPERATIONS } from "./generated/operations.js";
 
-export const VERSION = "0.9.0";
+export const VERSION = "0.10.0";
 
 const API = "https://api.shoply.gg/v1";
 

@@ -952,7 +952,7 @@ export interface AnalyticsSearchParams {
 export type AnalyticsSearchResult = unknown;
 
 /** What list storefronts answers: `storefronts.list`. */
-export type StorefrontsListResult = {
+export type StorefrontsListResult = Array<{
   id: string;
   name: string;
   theme: string;
@@ -966,11 +966,12 @@ export type StorefrontsListResult = {
   engine: string;
   codeOnCopy: unknown;
   themeChanged: unknown;
+  pictures: unknown[] | Record<string, unknown>;
   unpublished: boolean;
   accent: unknown;
   headingFont: unknown;
   pages: number;
-}[];
+}>;
 
 /** What create a storefront takes: `storefronts.create`. */
 export interface StorefrontsCreateParams {
@@ -987,7 +988,7 @@ export interface StorefrontsCreateParams {
 }
 
 /** What create a storefront answers: `storefronts.create`. */
-export type StorefrontsCreateResult = {
+export type StorefrontsCreateResult = Array<{
   id: string;
   name: string;
   theme: string;
@@ -1001,11 +1002,12 @@ export type StorefrontsCreateResult = {
   engine: string;
   codeOnCopy: unknown;
   themeChanged: unknown;
+  pictures: unknown[] | Record<string, unknown>;
   unpublished: boolean;
   accent: unknown;
   headingFont: unknown;
   pages: number;
-}[];
+}>;
 
 /** What import a storefront answers: `storefronts.import`. */
 export type StorefrontsImportResult = unknown;
@@ -1123,7 +1125,7 @@ export interface StorefrontsRenameParams {
 }
 
 /** What rename a storefront answers: `storefronts.rename`. */
-export type StorefrontsRenameResult = {
+export type StorefrontsRenameResult = Array<{
   id: string;
   name: string;
   theme: string;
@@ -1137,14 +1139,15 @@ export type StorefrontsRenameResult = {
   engine: string;
   codeOnCopy: unknown;
   themeChanged: unknown;
+  pictures: unknown[] | Record<string, unknown>;
   unpublished: boolean;
   accent: unknown;
   headingFont: unknown;
   pages: number;
-}[];
+}>;
 
 /** What delete a storefront answers: `storefronts.delete`. */
-export type StorefrontsDeleteResult = {
+export type StorefrontsDeleteResult = Array<{
   id: string;
   name: string;
   theme: string;
@@ -1158,11 +1161,12 @@ export type StorefrontsDeleteResult = {
   engine: string;
   codeOnCopy: unknown;
   themeChanged: unknown;
+  pictures: unknown[] | Record<string, unknown>;
   unpublished: boolean;
   accent: unknown;
   headingFont: unknown;
   pages: number;
-}[];
+}>;
 
 /** What make a storefront live takes: `storefronts.setLive`. */
 export interface StorefrontsSetLiveParams {
@@ -1175,7 +1179,7 @@ export interface StorefrontsSetLiveParams {
 }
 
 /** What make a storefront live answers: `storefronts.setLive`. */
-export type StorefrontsSetLiveResult = {
+export type StorefrontsSetLiveResult = Array<{
   id: string;
   name: string;
   theme: string;
@@ -1189,11 +1193,12 @@ export type StorefrontsSetLiveResult = {
   engine: string;
   codeOnCopy: unknown;
   themeChanged: unknown;
+  pictures: unknown[] | Record<string, unknown>;
   unpublished: boolean;
   accent: unknown;
   headingFont: unknown;
   pages: number;
-}[];
+}>;
 
 /** What get a storefront's code answers: `storefronts.code`. */
 export type StorefrontsCodeResult = {
@@ -1211,6 +1216,7 @@ export type StorefrontsCodeResult = {
     engine: string;
     codeOnCopy: unknown;
     themeChanged: unknown;
+    pictures: unknown[] | Record<string, unknown>;
     unpublished: boolean;
     accent: unknown;
     headingFont: unknown;
@@ -1241,6 +1247,7 @@ export type StorefrontsCodeStartResult = {
     engine: string;
     codeOnCopy: unknown;
     themeChanged: unknown;
+    pictures: unknown[] | Record<string, unknown>;
     unpublished: boolean;
     accent: unknown;
     headingFont: unknown;
@@ -1479,6 +1486,7 @@ export type StorefrontsCodePublishResult = {
     engine: string;
     codeOnCopy: unknown;
     themeChanged: unknown;
+    pictures: unknown[] | Record<string, unknown>;
     unpublished: boolean;
     accent: unknown;
     headingFont: unknown;
@@ -7723,7 +7731,7 @@ export interface ResellerProductsBadgesParams {
 
 /** What set a product's status and labels on the panel answers: `resellerProducts.badges`. */
 export type ResellerProductsBadgesResult = {
-  "f052e845-eeca-4497-aefb-c59dea7f3d27": {
+  "7626c760-c6cd-4b38-8344-cfbba0148a80": {
     label: string;
     color: string;
     kind: string;
@@ -7965,6 +7973,38 @@ export interface ResellerOrdersExportParams {
   /** `1` for how many rows the file would have, as `{ rows }`, in place of the file. */
   check?: "1";
 }
+
+/** What get a reseller order answers: `resellerOrders.get`. */
+export type ResellerOrdersGetResult = {
+  id: string;
+  status: string;
+  via: string;
+  currency: string;
+  total: number;
+  listTotal: number;
+  discount: number;
+  balanceAfter: number;
+  createdAt: string;
+  reseller: {
+    id: string;
+    name: string;
+    removed: boolean;
+  };
+  boughtBy: string;
+  goodsShown: boolean;
+  lines: Array<{
+    productId: string;
+    productName: string;
+    variantName: string;
+    unitPrice: number;
+    quantity: number;
+    delivered: number;
+    keys: string[];
+    items: unknown[] | Record<string, unknown>;
+    waiting: boolean;
+    instructions: string;
+  }>;
+};
 
 /** What list top-ups takes: `resellerTopUps.list`. */
 export interface ResellerTopUpsListParams {
@@ -15104,6 +15144,16 @@ export interface ShoplyResourcesResellerOrders {
    * @see https://docs.shoply.gg/api-reference/resellers/export-reseller-orders
    */
   export(params?: ResellerOrdersExportParams, options?: RequestOptions): Promise<Response>;
+  /**
+   * **Get a reseller order**
+   *
+   * One reseller order whole, as the dashboard's page for it shows it: who bought it (`reseller`, and `boughtBy`, the member of their team), how (`via`), the `total` taken off their balance, `listTotal` (what it came to at the panel's list prices when bought) and `discount` (what their price took off it), both null for an order from before those were kept, and `balanceAfter`. Each of `lines` is an option it bought, with its `unitPrice` and `quantity` and what it delivered: `keys`, `items` (what a dynamic delivery's server handed back, a line each), `instructions`, and `waiting` while a dynamic line is still being fetched. A store's own order or a top-up answers 404.
+   *
+   * Needs the `resellers.read` permission (Read Resellers).
+   *
+   * @see https://docs.shoply.gg/api-reference/resellers/get-a-reseller-order
+   */
+  get(orderId: string, options?: RequestOptions): Promise<ResellerOrdersGetResult>;
 }
 
 export interface ShoplyResourcesResellerTopUps {
