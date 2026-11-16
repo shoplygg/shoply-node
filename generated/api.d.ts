@@ -294,6 +294,8 @@ export type StoreEmailSettingsResult = {
   emailCustomPaidEnabled: boolean;
   emailTicketsEnabled: boolean;
   emailResellersEnabled: boolean;
+  emailPaymentSetupEnabled: boolean;
+  emailDiscordSetupEnabled: boolean;
   emailDisputeOpenedEnabled: boolean;
   emailDisputeClosedEnabled: boolean;
   testEmailEvery: {
@@ -2447,6 +2449,8 @@ export type ProductsListItem = {
   deliveryInstructions: string;
   blockedPaymentMethods: unknown[] | Record<string, unknown>;
   paymentFees: unknown[] | Record<string, unknown>;
+  discordRoles: unknown[] | Record<string, unknown>;
+  discordLinking: string;
   showViewers: boolean;
   showSales: boolean;
   salesWindow: string;
@@ -2482,6 +2486,8 @@ export type ProductsListItem = {
     customFields: unknown[] | Record<string, unknown>;
     sort: number;
     blockedPaymentMethods: unknown[] | Record<string, unknown>;
+    discordRoles: unknown[] | Record<string, unknown>;
+    discordLinking: string;
   }>;
   runningSubscriptions: number;
 };
@@ -2563,6 +2569,10 @@ export interface ProductsCreateParams {
     }>;
     /** Payment methods this variant cannot be bought with, by their names in the payment methods list. */
     blockedPaymentMethods?: string[];
+    /** Discord roles this variant gives on top of the product's, each as `server ID:role ID` (the server's ID as Settings, Discord Roles answers it on the dashboard, then the role's Discord ID), up to 10. A role a server does not have is dropped. Left out, they stay as they are. */
+    discordRoles?: string[];
+    /** Whether its buyer must link their Discord at checkout: `product` follows the product, `required` holds Pay until they link, `optional` lets them skip it. Left out, it stays as it is. */
+    discordLinking?: "product" | "required" | "optional";
     /** Its place among the product's variants. Left out, its place in the list sent. */
     sort?: number;
   }>;
@@ -2600,6 +2610,10 @@ export interface ProductsCreateParams {
   }>;
   /** Payment methods the product cannot be bought with, by their names in the payment methods list. Left out on an update, they stay as they are. */
   blockedPaymentMethods?: string[];
+  /** Discord roles every variant of the product gives, each as `server ID:role ID`. A product and its variants give up to 25 in all. Left out on an update, they stay as they are. */
+  discordRoles?: string[];
+  /** Whether its buyers must link their Discord at checkout: `store` follows the store's setting, `required` holds Pay until they link, `optional` lets them skip it. Left out on an update, it stays as it is. */
+  discordLinking?: "store" | "required" | "optional";
   /** What a payment method adds to this product's price: a payment method's name, and under it `percent` and `fixed`. A fee can only add. Left out on an update, the fees stay as they are. */
   paymentFees?: Record<string, unknown>;
   /**
@@ -2643,6 +2657,8 @@ export type ProductsCreateResult = {
   deliveryInstructions: string;
   blockedPaymentMethods: unknown[] | Record<string, unknown>;
   paymentFees: unknown[] | Record<string, unknown>;
+  discordRoles: unknown[] | Record<string, unknown>;
+  discordLinking: string;
   showViewers: boolean;
   showSales: boolean;
   salesWindow: string;
@@ -2678,6 +2694,8 @@ export type ProductsCreateResult = {
     customFields: unknown[] | Record<string, unknown>;
     sort: number;
     blockedPaymentMethods: unknown[] | Record<string, unknown>;
+    discordRoles: unknown[] | Record<string, unknown>;
+    discordLinking: string;
   }>;
   runningSubscriptions: number;
 };
@@ -2709,6 +2727,8 @@ export type ProductsShowResult = {
   deliveryInstructions: string;
   blockedPaymentMethods: unknown[] | Record<string, unknown>;
   paymentFees: unknown[] | Record<string, unknown>;
+  discordRoles: unknown[] | Record<string, unknown>;
+  discordLinking: string;
   showViewers: boolean;
   showSales: boolean;
   salesWindow: string;
@@ -2744,6 +2764,8 @@ export type ProductsShowResult = {
     customFields: unknown[] | Record<string, unknown>;
     sort: number;
     blockedPaymentMethods: unknown[] | Record<string, unknown>;
+    discordRoles: unknown[] | Record<string, unknown>;
+    discordLinking: string;
   }>;
   runningSubscriptions: number;
 };
@@ -2825,6 +2847,10 @@ export interface ProductsUpdateParams {
     }>;
     /** Payment methods this variant cannot be bought with, by their names in the payment methods list. */
     blockedPaymentMethods?: string[];
+    /** Discord roles this variant gives on top of the product's, each as `server ID:role ID` (the server's ID as Settings, Discord Roles answers it on the dashboard, then the role's Discord ID), up to 10. A role a server does not have is dropped. Left out, they stay as they are. */
+    discordRoles?: string[];
+    /** Whether its buyer must link their Discord at checkout: `product` follows the product, `required` holds Pay until they link, `optional` lets them skip it. Left out, it stays as it is. */
+    discordLinking?: "product" | "required" | "optional";
     /** Its place among the product's variants. Left out, its place in the list sent. */
     sort?: number;
   }>;
@@ -2862,6 +2888,10 @@ export interface ProductsUpdateParams {
   }>;
   /** Payment methods the product cannot be bought with, by their names in the payment methods list. Left out on an update, they stay as they are. */
   blockedPaymentMethods?: string[];
+  /** Discord roles every variant of the product gives, each as `server ID:role ID`. A product and its variants give up to 25 in all. Left out on an update, they stay as they are. */
+  discordRoles?: string[];
+  /** Whether its buyers must link their Discord at checkout: `store` follows the store's setting, `required` holds Pay until they link, `optional` lets them skip it. Left out on an update, it stays as it is. */
+  discordLinking?: "store" | "required" | "optional";
   /** What a payment method adds to this product's price: a payment method's name, and under it `percent` and `fixed`. A fee can only add. Left out on an update, the fees stay as they are. */
   paymentFees?: Record<string, unknown>;
   /**
@@ -2907,6 +2937,8 @@ export type ProductsUpdateResult = {
   deliveryInstructions: string;
   blockedPaymentMethods: unknown[] | Record<string, unknown>;
   paymentFees: unknown[] | Record<string, unknown>;
+  discordRoles: unknown[] | Record<string, unknown>;
+  discordLinking: string;
   showViewers: boolean;
   showSales: boolean;
   salesWindow: string;
@@ -2942,6 +2974,8 @@ export type ProductsUpdateResult = {
     customFields: unknown[] | Record<string, unknown>;
     sort: number;
     blockedPaymentMethods: unknown[] | Record<string, unknown>;
+    discordRoles: unknown[] | Record<string, unknown>;
+    discordLinking: string;
   }>;
   runningSubscriptions: number;
 };
@@ -2984,6 +3018,10 @@ export interface ProductsBulkUpdateParams {
   paymentMethods?: Record<string, unknown>;
   /** Instructions for every variant of all of them, up to 5,000 characters, in place of what each has. Empty takes them off. A variant's own instructions are not touched. */
   deliveryInstructions?: string;
+  /** A Discord role as `server ID:role ID`, and `give` or `stop`. `give` adds it to what every variant of each product gives. `stop` takes it off the product and off every variant of it. */
+  discordRoles?: Record<string, unknown>;
+  /** Whether buyers of all of them must link their Discord at checkout, for the whole product. */
+  discordLinking?: "store" | "required" | "optional";
 }
 
 /** What change many products answers: `products.bulkUpdate`. */
@@ -4326,6 +4364,7 @@ export type OrdersShowResult = {
   payments: unknown[] | Record<string, unknown>;
   invoice: unknown;
   disputes: unknown[] | Record<string, unknown>;
+  discord: unknown;
   review: unknown;
   requests: unknown[] | Record<string, unknown>;
   customPayment: unknown;
@@ -7731,7 +7770,7 @@ export interface ResellerProductsBadgesParams {
 
 /** What set a product's status and labels on the panel answers: `resellerProducts.badges`. */
 export type ResellerProductsBadgesResult = {
-  "7626c760-c6cd-4b38-8344-cfbba0148a80": {
+  "17a715fc-872e-4907-b0ec-f6c1ca743380": {
     label: string;
     color: string;
     kind: string;
@@ -9272,6 +9311,8 @@ export type DisputesSettingsResult = {
   emailOpened: boolean;
   emailClosed: boolean;
   discord: boolean;
+  discordRoles: string;
+  discordRolesBack: boolean;
   currency: string;
 };
 
@@ -9297,6 +9338,10 @@ export interface DisputesUpdateSettingsParams {
   emailClosed?: boolean;
   /** Post both to the store's Discord. Needs a webhook in its notification settings. */
   discord?: boolean;
+  /** What an opened dispute does to a buyer who linked their Discord to the order: `keep` their roles, `take` them, `kick` (take them and remove the buyer from the server), or `ban` them from it. */
+  discordRoles?: "keep" | "take" | "kick" | "ban";
+  /** Whether a dispute closed in the store's favour gives the roles back, adds a kicked buyer again and lifts a ban. */
+  discordRolesBack?: boolean;
 }
 
 /** What change dispute settings answers: `disputes.updateSettings`. */
@@ -9311,6 +9356,8 @@ export type DisputesUpdateSettingsResult = {
   emailOpened: boolean;
   emailClosed: boolean;
   discord: boolean;
+  discordRoles: string;
+  discordRolesBack: boolean;
   currency: string;
 };
 
@@ -11542,6 +11589,7 @@ export type CustomerOrdersShowResult = {
     };
   }>;
   general: string;
+  discord: unknown;
 };
 
 /** What sign out answers: `customer.logout`. */
@@ -16457,6 +16505,9 @@ export type WebhookEventName =
   | "order.chargeback"
   | "order.payment_submitted"
   | "order.rerouted"
+  | "order.discord_linked"
+  | "order.discord_roles_given"
+  | "order.discord_roles_taken"
   | "review.created"
   | "review.removed"
   | "review.flag_declined"
@@ -16594,6 +16645,24 @@ export interface WebhookEventData {
    */
   "order.rerouted": OrdersShowResult & Record<string, unknown>;
   /**
+   * The buyer linked their Discord to an order, at checkout or after paying.
+   *
+   * `data`: The order, as [Get an order](https://docs.shoply.gg/api-reference/orders/get-an-order) answers it, with `payments`, every payment opened for it, and `invoice` where the store raised it as one.
+   */
+  "order.discord_linked": OrdersShowResult & Record<string, unknown>;
+  /**
+   * The roles an order gives were given to its buyer in one of the store's Discord servers, adding them to the server where they were not in it.
+   *
+   * `data`: The order, as [Get an order](https://docs.shoply.gg/api-reference/orders/get-an-order) answers it, with `payments`, every payment opened for it, and `invoice` where the store raised it as one.
+   */
+  "order.discord_roles_given": OrdersShowResult & Record<string, unknown>;
+  /**
+   * The roles an order gave were taken back in one of the store's Discord servers: a refund, a chargeback, a dispute, a subscription that ended, or the store by hand.
+   *
+   * `data`: The order, as [Get an order](https://docs.shoply.gg/api-reference/orders/get-an-order) answers it, with `payments`, every payment opened for it, and `invoice` where the store raised it as one.
+   */
+  "order.discord_roles_taken": OrdersShowResult & Record<string, unknown>;
+  /**
    * A review was left on an order, by its buyer or by itself after seven days.
    *
    * `data`: `orderId`, `productId`, `email`, and `review` with its `rating`, `message`, `automatic`, `dateCreated` and `reply` (the store's `message` and `dateReplied`, or null). `review.replied` and `review.reply_removed` add `reviewId`. `review.removed` and `review.flag_declined` add `reviewId` and `flag`, the flag as [List reviews](https://docs.shoply.gg/api-reference/reviews/list-reviews) answers it, with Shoply's `answer`.
@@ -16726,13 +16795,13 @@ export interface WebhookEventData {
    */
   "subscription.ended": SubscriptionsShowResult & Record<string, unknown>;
   /**
-   * A subscription was paused, by its buyer or the store. Nothing renews until it resumes, and where the store takes access back, it was.
+   * A subscription was paused: by its buyer or the store, or by Shoply while the store is offline. Nothing renews until it resumes. Where the store takes access back, a pause of the buyer's or the store's takes it.
    *
    * `data`: The subscription, as [Get a subscription](https://docs.shoply.gg/api-reference/subscriptions/get-a-subscription) answers it.
    */
   "subscription.paused": SubscriptionsShowResult & Record<string, unknown>;
   /**
-   * A paused subscription is running again, by itself on its day or when asked. Access is given back.
+   * A paused subscription is running again: by itself on its day, when asked, or when its store is back online. Access is given back.
    *
    * `data`: The subscription, as [Get a subscription](https://docs.shoply.gg/api-reference/subscriptions/get-a-subscription) answers it.
    */
